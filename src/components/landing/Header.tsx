@@ -1,9 +1,12 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Header = () => {
+  const { user } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
@@ -35,8 +38,20 @@ const Header = () => {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-3">
-            <Button variant="ghost">Log In</Button>
-            <Button variant="default">Get Started</Button>
+            {user ? (
+              <Button variant="default" asChild>
+                <Link to="/dashboard">Dashboard</Link>
+              </Button>
+            ) : (
+              <>
+                <Button variant="ghost" asChild>
+                  <Link to="/auth">Log In</Link>
+                </Button>
+                <Button variant="default" asChild>
+                  <Link to="/auth">Get Started</Link>
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -82,8 +97,20 @@ const Header = () => {
                   Become a Runner
                 </a>
                 <div className="flex flex-col gap-2 pt-4 border-t border-border">
-                  <Button variant="ghost" className="justify-center">Log In</Button>
-                  <Button variant="default" className="justify-center">Get Started</Button>
+                  {user ? (
+                    <Button variant="default" className="justify-center" asChild>
+                      <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>Dashboard</Link>
+                    </Button>
+                  ) : (
+                    <>
+                      <Button variant="ghost" className="justify-center" asChild>
+                        <Link to="/auth" onClick={() => setIsMenuOpen(false)}>Log In</Link>
+                      </Button>
+                      <Button variant="default" className="justify-center" asChild>
+                        <Link to="/auth" onClick={() => setIsMenuOpen(false)}>Get Started</Link>
+                      </Button>
+                    </>
+                  )}
                 </div>
               </nav>
             </div>

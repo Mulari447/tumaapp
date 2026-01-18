@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, MapPin, Clock, Shield } from "lucide-react";
 import { motion } from "framer-motion";
@@ -48,12 +49,14 @@ const Hero = () => {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 mb-12">
-              <Button variant="hero" size="xl">
-                Post an Errand
-                <ArrowRight className="w-5 h-5" />
+              <Button variant="hero" size="xl" asChild>
+                <Link to="/auth">
+                  Post an Errand
+                  <ArrowRight className="w-5 h-5" />
+                </Link>
               </Button>
-              <Button variant="success" size="xl">
-                Become a Runner
+              <Button variant="success" size="xl" asChild>
+                <Link to="/auth">Become a Runner</Link>
               </Button>
             </div>
 
