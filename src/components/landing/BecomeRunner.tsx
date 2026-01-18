@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { DollarSign, Calendar, MapPin, Star, ArrowRight } from "lucide-react";
@@ -49,9 +50,11 @@ const BecomeRunner = () => {
               extra income — Errandi connects you with people who need help.
             </p>
             
-            <Button variant="hero" size="xl" className="group">
-              Start Earning Today
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            <Button variant="hero" size="xl" className="group" asChild>
+              <Link to="/auth">
+                Start Earning Today
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Link>
             </Button>
           </motion.div>
 
