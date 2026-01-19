@@ -37,6 +37,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading, signOut } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -68,6 +69,10 @@ const Dashboard = () => {
 
     if (user) {
       fetchProfile();
+      // Check admin status
+      supabase.rpc('is_admin').then(({ data }) => {
+        setIsAdmin(!!data);
+      });
     }
   }, [user]);
 
@@ -125,6 +130,12 @@ const Dashboard = () => {
         <div className="container mx-auto flex items-center justify-between">
           <Link to="/" className="text-2xl font-bold text-primary">Errandi</Link>
           <div className="flex items-center gap-4">
+            {isAdmin && (
+              <Button variant="outline" size="sm" onClick={() => navigate('/admin')}>
+                <Shield className="h-4 w-4 mr-2" />
+                Admin
+              </Button>
+            )}
             <span className="text-sm text-muted-foreground hidden sm:block">
               {profile?.email}
             </span>

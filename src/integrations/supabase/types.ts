@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       profiles: {
         Row: {
+          admin_notes: string | null
           bio: string | null
           created_at: string
           email: string
@@ -31,8 +32,11 @@ export type Database = {
           verification_status:
             | Database["public"]["Enums"]["verification_status"]
             | null
+          verified_at: string | null
+          verified_by: string | null
         }
         Insert: {
+          admin_notes?: string | null
           bio?: string | null
           created_at?: string
           email: string
@@ -48,8 +52,11 @@ export type Database = {
           verification_status?:
             | Database["public"]["Enums"]["verification_status"]
             | null
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Update: {
+          admin_notes?: string | null
           bio?: string | null
           created_at?: string
           email?: string
@@ -65,6 +72,8 @@ export type Database = {
           verification_status?:
             | Database["public"]["Enums"]["verification_status"]
             | null
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Relationships: []
       }
