@@ -8,6 +8,8 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import VerifyDocuments from "./pages/VerifyDocuments";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminVerificationDetail from "./pages/AdminVerificationDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +26,8 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/verify-documents" element={<VerifyDocuments />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/verification/:userId" element={<AdminVerificationDetail />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
