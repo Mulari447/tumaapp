@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      errands: {
+        Row: {
+          budget: number
+          category: Database["public"]["Enums"]["errand_category"]
+          created_at: string
+          customer_id: string
+          description: string
+          id: string
+          location: string
+          runner_id: string | null
+          status: Database["public"]["Enums"]["errand_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          budget: number
+          category: Database["public"]["Enums"]["errand_category"]
+          created_at?: string
+          customer_id: string
+          description: string
+          id?: string
+          location: string
+          runner_id?: string | null
+          status?: Database["public"]["Enums"]["errand_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          budget?: number
+          category?: Database["public"]["Enums"]["errand_category"]
+          created_at?: string
+          customer_id?: string
+          description?: string
+          id?: string
+          location?: string
+          runner_id?: string | null
+          status?: Database["public"]["Enums"]["errand_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           admin_notes: string | null
@@ -111,6 +153,19 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      errand_category:
+        | "groceries"
+        | "delivery"
+        | "cleaning"
+        | "laundry"
+        | "moving"
+        | "other"
+      errand_status:
+        | "open"
+        | "assigned"
+        | "in_progress"
+        | "completed"
+        | "cancelled"
       user_type: "customer" | "runner"
       verification_status: "pending" | "under_review" | "verified" | "rejected"
     }
@@ -241,6 +296,21 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      errand_category: [
+        "groceries",
+        "delivery",
+        "cleaning",
+        "laundry",
+        "moving",
+        "other",
+      ],
+      errand_status: [
+        "open",
+        "assigned",
+        "in_progress",
+        "completed",
+        "cancelled",
+      ],
       user_type: ["customer", "runner"],
       verification_status: ["pending", "under_review", "verified", "rejected"],
     },

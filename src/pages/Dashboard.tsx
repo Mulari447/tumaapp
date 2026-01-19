@@ -274,7 +274,10 @@ const Dashboard = () => {
           <div className="grid gap-4 sm:grid-cols-2">
             {profile?.user_type === 'customer' ? (
               <>
-                <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+                <Card 
+                  className="cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => navigate('/post-errand')}
+                >
                   <CardContent className="p-6 flex items-center gap-4">
                     <div className="p-3 bg-primary/10 rounded-full">
                       <Plus className="h-6 w-6 text-primary" />
@@ -287,7 +290,10 @@ const Dashboard = () => {
                     </div>
                   </CardContent>
                 </Card>
-                <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+                <Card 
+                  className="cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => navigate('/my-errands')}
+                >
                   <CardContent className="p-6 flex items-center gap-4">
                     <div className="p-3 bg-primary/10 rounded-full">
                       <Clock className="h-6 w-6 text-primary" />
