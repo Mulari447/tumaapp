@@ -17,7 +17,8 @@ import {
   XCircle,
   AlertCircle,
   FileText,
-  Plus
+  Plus,
+  Wallet
 } from 'lucide-react';
 
 type VerificationStatus = 'pending' | 'under_review' | 'verified' | 'rejected';
@@ -269,6 +270,29 @@ const Dashboard = () => {
               </CardContent>
             </Card>
           )}
+
+          {/* Wallet Card */}
+          <Card 
+            className="mb-6 cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => navigate('/wallet')}
+          >
+            <CardContent className="p-6 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-primary/10 rounded-full">
+                  <Wallet className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">My Wallet</h3>
+                  <p className="text-sm text-muted-foreground">
+                    View balance, deposit & withdraw via M-Pesa
+                  </p>
+                </div>
+              </div>
+              <Button variant="outline" size="sm">
+                Open Wallet
+              </Button>
+            </CardContent>
+          </Card>
 
           {/* Quick Actions */}
           <div className="grid gap-4 sm:grid-cols-2">
