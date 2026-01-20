@@ -119,6 +119,66 @@ export type Database = {
         }
         Relationships: []
       }
+      transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          errand_id: string | null
+          id: string
+          metadata: Json | null
+          mpesa_reference: string | null
+          phone_number: string | null
+          status: Database["public"]["Enums"]["transaction_status"]
+          type: Database["public"]["Enums"]["transaction_type"]
+          updated_at: string
+          wallet_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          errand_id?: string | null
+          id?: string
+          metadata?: Json | null
+          mpesa_reference?: string | null
+          phone_number?: string | null
+          status?: Database["public"]["Enums"]["transaction_status"]
+          type: Database["public"]["Enums"]["transaction_type"]
+          updated_at?: string
+          wallet_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          errand_id?: string | null
+          id?: string
+          metadata?: Json | null
+          mpesa_reference?: string | null
+          phone_number?: string | null
+          status?: Database["public"]["Enums"]["transaction_status"]
+          type?: Database["public"]["Enums"]["transaction_type"]
+          updated_at?: string
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_errand_id_fkey"
+            columns: ["errand_id"]
+            isOneToOne: false
+            referencedRelation: "errands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -133,6 +193,33 @@ export type Database = {
         Update: {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wallets: {
+        Row: {
+          balance: number
+          created_at: string
+          escrow_balance: number
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          escrow_balance?: number
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          escrow_balance?: number
+          id?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -166,6 +253,14 @@ export type Database = {
         | "in_progress"
         | "completed"
         | "cancelled"
+      transaction_status: "pending" | "completed" | "failed" | "cancelled"
+      transaction_type:
+        | "deposit"
+        | "withdrawal"
+        | "errand_payment"
+        | "errand_release"
+        | "refund"
+        | "commission"
       user_type: "customer" | "runner"
       verification_status: "pending" | "under_review" | "verified" | "rejected"
     }
@@ -310,6 +405,15 @@ export const Constants = {
         "in_progress",
         "completed",
         "cancelled",
+      ],
+      transaction_status: ["pending", "completed", "failed", "cancelled"],
+      transaction_type: [
+        "deposit",
+        "withdrawal",
+        "errand_payment",
+        "errand_release",
+        "refund",
+        "commission",
       ],
       user_type: ["customer", "runner"],
       verification_status: ["pending", "under_review", "verified", "rejected"],
