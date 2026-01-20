@@ -1,1 +1,13 @@
 project_id = "usvxqobrgbbmahqbozhk"
+
+[functions.mpesa-stk-push]
+verify_jwt = false
+
+[functions.mpesa-withdraw]
+verify_jwt = false
+
+[functions.mpesa-callback]
+verify_jwt = false
+
+[functions.release-payment]
+verify_jwt = false
