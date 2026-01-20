@@ -309,7 +309,10 @@ const Dashboard = () => {
               </>
             ) : (
               <>
-                <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+                <Card 
+                  className="cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => navigate('/errands-marketplace')}
+                >
                   <CardContent className="p-6 flex items-center gap-4">
                     <div className="p-3 bg-primary/10 rounded-full">
                       <FileText className="h-6 w-6 text-primary" />

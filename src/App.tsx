@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import VerifyDocuments from "./pages/VerifyDocuments";
 import PostErrand from "./pages/PostErrand";
 import MyErrands from "./pages/MyErrands";
+import ErrandsMarketplace from "./pages/ErrandsMarketplace";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminVerificationDetail from "./pages/AdminVerificationDetail";
 import NotFound from "./pages/NotFound";
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/verify-documents" element={<VerifyDocuments />} />
             <Route path="/post-errand" element={<PostErrand />} />
             <Route path="/my-errands" element={<MyErrands />} />
+            <Route path="/errands-marketplace" element={<ErrandsMarketplace />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/verification/:userId" element={<AdminVerificationDetail />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
