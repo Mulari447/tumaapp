@@ -11,3 +11,9 @@ verify_jwt = false
 
 [functions.release-payment]
 verify_jwt = false
+
+[functions.update-errand-status]
+verify_jwt = false
+
+[functions.admin-errand-action]
+verify_jwt = false

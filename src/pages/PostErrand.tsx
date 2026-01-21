@@ -36,7 +36,7 @@ import {
   PackageOpen,
   HelpCircle,
   MapPin,
-  DollarSign,
+  Clock,
   Loader2,
 } from "lucide-react";
 
@@ -63,25 +63,32 @@ const errandSchema = z.object({
     .trim()
     .min(20, "Description must be at least 20 characters")
     .max(1000, "Description must be less than 1000 characters"),
-  location: z
+  pickup_location: z
     .string()
     .trim()
-    .min(5, "Location must be at least 5 characters")
-    .max(200, "Location must be less than 200 characters"),
-  budget: z
+    .min(5, "Pickup location must be at least 5 characters")
+    .max(200, "Pickup location must be less than 200 characters"),
+  dropoff_location: z
     .string()
-    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
-      message: "Budget must be a positive number",
+    .trim()
+    .min(5, "Drop-off location must be at least 5 characters")
+    .max(200, "Drop-off location must be less than 200 characters"),
+  estimated_hours: z
+    .string()
+    .refine((val) => !isNaN(Number(val)) && Number(val) >= 0.5, {
+      message: "Estimated time must be at least 0.5 hours",
     })
-    .refine((val) => Number(val) >= 100, {
-      message: "Minimum budget is KES 100",
-    })
-    .refine((val) => Number(val) <= 100000, {
-      message: "Maximum budget is KES 100,000",
+    .refine((val) => Number(val) <= 24, {
+      message: "Maximum estimated time is 24 hours",
     }),
 });
 
 type ErrandFormData = z.infer<typeof errandSchema>;
+
+const BASE_RATE = 150;
+const HOURLY_RATE = 150;
+
+const calculatePrice = (hours: number) => BASE_RATE + (hours * HOURLY_RATE);
 
 export default function PostErrand() {
   const navigate = useNavigate();
@@ -94,10 +101,14 @@ export default function PostErrand() {
       title: "",
       category: undefined,
       description: "",
-      location: "",
-      budget: "",
+      pickup_location: "",
+      dropoff_location: "",
+      estimated_hours: "1",
     },
   });
+
+  const estimatedHours = Number(form.watch("estimated_hours")) || 1;
+  const calculatedPrice = calculatePrice(estimatedHours);
 
   const onSubmit = async (data: ErrandFormData) => {
     if (!user) {
@@ -117,8 +128,11 @@ export default function PostErrand() {
         title: data.title,
         category: data.category,
         description: data.description,
-        location: data.location,
-        budget: Number(data.budget),
+        location: data.pickup_location, // Keep for backwards compatibility
+        pickup_location: data.pickup_location,
+        dropoff_location: data.dropoff_location,
+        estimated_hours: Number(data.estimated_hours),
+        budget: calculatedPrice,
       });
 
       if (error) throw error;
@@ -250,19 +264,19 @@ export default function PostErrand() {
                     )}
                   />
 
-                  {/* Location */}
+                  {/* Pickup Location */}
                   <FormField
                     control={form.control}
-                    name="location"
+                    name="pickup_location"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="flex items-center gap-2">
                           <MapPin className="h-4 w-4" />
-                          Location
+                          Pickup Location
                         </FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="e.g., Westlands, Nairobi or specific address"
+                            placeholder="e.g., Carrefour Westlands, Nairobi"
                             {...field}
                           />
                         </FormControl>
@@ -271,35 +285,66 @@ export default function PostErrand() {
                     )}
                   />
 
-                  {/* Budget */}
+                  {/* Drop-off Location */}
                   <FormField
                     control={form.control}
-                    name="budget"
+                    name="dropoff_location"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="flex items-center gap-2">
-                          <DollarSign className="h-4 w-4" />
-                          Budget (KES)
+                          <MapPin className="h-4 w-4" />
+                          Drop-off Location
                         </FormLabel>
                         <FormControl>
-                          <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                              KES
-                            </span>
-                            <Input
-                              type="number"
-                              placeholder="500"
-                              className="pl-12"
-                              min="100"
-                              max="100000"
-                              {...field}
-                            />
-                          </div>
+                          <Input
+                            placeholder="e.g., Kilimani, Nairobi"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+
+                  {/* Estimated Hours */}
+                  <FormField
+                    control={form.control}
+                    name="estimated_hours"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <Clock className="h-4 w-4" />
+                          Estimated Time (hours)
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="1"
+                            min="0.5"
+                            max="24"
+                            step="0.5"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Calculated Price */}
+                  <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium">Total Price</p>
+                        <p className="text-xs text-muted-foreground">
+                          Base rate (KES {BASE_RATE}) + {estimatedHours} hrs × KES {HOURLY_RATE}
+                        </p>
+                      </div>
+                      <p className="text-2xl font-bold text-primary">
+                        KES {calculatedPrice.toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
 
                   {/* Submit */}
                   <div className="flex gap-3 pt-4">

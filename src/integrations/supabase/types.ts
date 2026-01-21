@@ -14,47 +14,241 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_decisions: {
+        Row: {
+          admin_id: string
+          created_at: string | null
+          decision_type: string
+          errand_id: string | null
+          id: string
+          reason: string
+          runner_id: string | null
+        }
+        Insert: {
+          admin_id: string
+          created_at?: string | null
+          decision_type: string
+          errand_id?: string | null
+          id?: string
+          reason: string
+          runner_id?: string | null
+        }
+        Update: {
+          admin_id?: string
+          created_at?: string | null
+          decision_type?: string
+          errand_id?: string | null
+          id?: string
+          reason?: string
+          runner_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_decisions_errand_id_fkey"
+            columns: ["errand_id"]
+            isOneToOne: false
+            referencedRelation: "errands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      errand_messages: {
+        Row: {
+          created_at: string | null
+          errand_id: string
+          id: string
+          message: string
+          sender_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          errand_id: string
+          id?: string
+          message: string
+          sender_id: string
+        }
+        Update: {
+          created_at?: string | null
+          errand_id?: string
+          id?: string
+          message?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "errand_messages_errand_id_fkey"
+            columns: ["errand_id"]
+            isOneToOne: false
+            referencedRelation: "errands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      errand_status_history: {
+        Row: {
+          changed_at: string | null
+          changed_by: string
+          errand_id: string
+          id: string
+          new_status: Database["public"]["Enums"]["errand_status"]
+          notes: string | null
+          previous_status: Database["public"]["Enums"]["errand_status"] | null
+        }
+        Insert: {
+          changed_at?: string | null
+          changed_by: string
+          errand_id: string
+          id?: string
+          new_status: Database["public"]["Enums"]["errand_status"]
+          notes?: string | null
+          previous_status?: Database["public"]["Enums"]["errand_status"] | null
+        }
+        Update: {
+          changed_at?: string | null
+          changed_by?: string
+          errand_id?: string
+          id?: string
+          new_status?: Database["public"]["Enums"]["errand_status"]
+          notes?: string | null
+          previous_status?: Database["public"]["Enums"]["errand_status"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "errand_status_history_errand_id_fkey"
+            columns: ["errand_id"]
+            isOneToOne: false
+            referencedRelation: "errands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       errands: {
         Row: {
+          accepted_at: string | null
+          admin_notes: string | null
+          base_rate: number | null
           budget: number
           category: Database["public"]["Enums"]["errand_category"]
+          completed_at: string | null
+          confirmed_at: string | null
           created_at: string
           customer_id: string
           description: string
+          dispute_reason: string | null
+          disputed_at: string | null
+          dropoff_location: string | null
+          estimated_hours: number | null
+          hourly_rate: number | null
           id: string
           location: string
+          paid_at: string | null
+          pickup_location: string | null
           runner_id: string | null
+          started_at: string | null
           status: Database["public"]["Enums"]["errand_status"]
           title: string
+          total_price: number | null
           updated_at: string
         }
         Insert: {
+          accepted_at?: string | null
+          admin_notes?: string | null
+          base_rate?: number | null
           budget: number
           category: Database["public"]["Enums"]["errand_category"]
+          completed_at?: string | null
+          confirmed_at?: string | null
           created_at?: string
           customer_id: string
           description: string
+          dispute_reason?: string | null
+          disputed_at?: string | null
+          dropoff_location?: string | null
+          estimated_hours?: number | null
+          hourly_rate?: number | null
           id?: string
           location: string
+          paid_at?: string | null
+          pickup_location?: string | null
           runner_id?: string | null
+          started_at?: string | null
           status?: Database["public"]["Enums"]["errand_status"]
           title: string
+          total_price?: number | null
           updated_at?: string
         }
         Update: {
+          accepted_at?: string | null
+          admin_notes?: string | null
+          base_rate?: number | null
           budget?: number
           category?: Database["public"]["Enums"]["errand_category"]
+          completed_at?: string | null
+          confirmed_at?: string | null
           created_at?: string
           customer_id?: string
           description?: string
+          dispute_reason?: string | null
+          disputed_at?: string | null
+          dropoff_location?: string | null
+          estimated_hours?: number | null
+          hourly_rate?: number | null
           id?: string
           location?: string
+          paid_at?: string | null
+          pickup_location?: string | null
           runner_id?: string | null
+          started_at?: string | null
           status?: Database["public"]["Enums"]["errand_status"]
           title?: string
+          total_price?: number | null
           updated_at?: string
         }
         Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string | null
+          errand_id: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          read_at: string | null
+          title: string
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          errand_id?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          read_at?: string | null
+          title: string
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          errand_id?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          read_at?: string | null
+          title?: string
+          type?: Database["public"]["Enums"]["notification_type"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_errand_id_fkey"
+            columns: ["errand_id"]
+            isOneToOne: false
+            referencedRelation: "errands"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -118,6 +312,44 @@ export type Database = {
           verified_by?: string | null
         }
         Relationships: []
+      }
+      ratings: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          customer_id: string
+          errand_id: string
+          id: string
+          rating: number
+          runner_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          customer_id: string
+          errand_id: string
+          id?: string
+          rating: number
+          runner_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          customer_id?: string
+          errand_id?: string
+          id?: string
+          rating?: number
+          runner_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ratings_errand_id_fkey"
+            columns: ["errand_id"]
+            isOneToOne: true
+            referencedRelation: "errands"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       transactions: {
         Row: {
@@ -226,9 +458,35 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      runner_stats: {
+        Row: {
+          average_rating: number | null
+          completion_rate: number | null
+          email: string | null
+          full_name: string | null
+          runner_id: string | null
+          total_cancellations: number | null
+          total_completed: number | null
+          total_disputes: number | null
+          total_ratings: number | null
+          verification_status:
+            | Database["public"]["Enums"]["verification_status"]
+            | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      create_notification: {
+        Args: {
+          p_errand_id?: string
+          p_message: string
+          p_title: string
+          p_type: Database["public"]["Enums"]["notification_type"]
+          p_user_id: string
+        }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -237,6 +495,16 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: never; Returns: boolean }
+      log_status_change: {
+        Args: {
+          p_changed_by: string
+          p_errand_id: string
+          p_new_status: Database["public"]["Enums"]["errand_status"]
+          p_notes?: string
+          p_previous_status: Database["public"]["Enums"]["errand_status"]
+        }
+        Returns: string
+      }
     }
     Enums: {
       app_role: "admin" | "user"
@@ -253,6 +521,24 @@ export type Database = {
         | "in_progress"
         | "completed"
         | "cancelled"
+        | "confirmed"
+        | "disputed"
+        | "paid"
+      notification_type:
+        | "job_posted"
+        | "job_accepted"
+        | "job_started"
+        | "job_completed"
+        | "confirmation_requested"
+        | "job_confirmed"
+        | "job_disputed"
+        | "job_paid"
+        | "job_reassigned"
+        | "runner_suspended"
+        | "runner_reinstated"
+        | "admin_action"
+        | "new_message"
+        | "rating_received"
       transaction_status: "pending" | "completed" | "failed" | "cancelled"
       transaction_type:
         | "deposit"
@@ -405,6 +691,25 @@ export const Constants = {
         "in_progress",
         "completed",
         "cancelled",
+        "confirmed",
+        "disputed",
+        "paid",
+      ],
+      notification_type: [
+        "job_posted",
+        "job_accepted",
+        "job_started",
+        "job_completed",
+        "confirmation_requested",
+        "job_confirmed",
+        "job_disputed",
+        "job_paid",
+        "job_reassigned",
+        "runner_suspended",
+        "runner_reinstated",
+        "admin_action",
+        "new_message",
+        "rating_received",
       ],
       transaction_status: ["pending", "completed", "failed", "cancelled"],
       transaction_type: [
