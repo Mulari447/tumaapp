@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Wallet as WalletIcon, ArrowUpRight, ArrowDownLeft, Loader2, Phone } from "lucide-react";
+import { ArrowLeft, Wallet as WalletIcon, ArrowUpRight, ArrowDownLeft, Loader2, Phone, RefreshCw, CheckCircle2, XCircle, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -15,11 +16,20 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
 
 interface WalletData {
   id: string;
   balance: number;
   escrow_balance: number;
+}
+
+interface TransactionMetadata {
+  failure_reason?: string;
+  failed_reason?: string;
+  processed_at?: string;
+  failed_at?: string;
+  [key: string]: unknown;
 }
 
 interface Transaction {
@@ -29,7 +39,9 @@ interface Transaction {
   status: string;
   description: string | null;
   created_at: string;
+  updated_at: string;
   mpesa_reference: string | null;
+  metadata: TransactionMetadata | null;
 }
 
 export default function Wallet() {
@@ -41,33 +53,20 @@ export default function Wallet() {
   const [depositOpen, setDepositOpen] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [amount, setAmount] = useState("");
+  const [userId, setUserId] = useState<string | null>(null);
 
-  useEffect(() => {
-    checkAuthAndLoadWallet();
-  }, []);
-
-  const checkAuthAndLoadWallet = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      navigate("/auth");
-      return;
-    }
-    await loadWallet(session.user.id);
-    await loadTransactions();
-  };
-
-  const loadWallet = async (userId: string) => {
+  const loadWallet = useCallback(async (uid: string) => {
     const { data, error } = await supabase
       .from("wallets")
       .select("*")
-      .eq("user_id", userId)
+      .eq("user_id", uid)
       .single();
 
     if (error) {
       console.error("Error loading wallet:", error);
-      // Wallet might not exist yet for older users
       if (error.code === "PGRST116") {
         setWallet({ id: "", balance: 0, escrow_balance: 0 });
       }
@@ -75,20 +74,71 @@ export default function Wallet() {
       setWallet(data);
     }
     setLoading(false);
-  };
+  }, []);
 
-  const loadTransactions = async () => {
+  const loadTransactions = useCallback(async () => {
     const { data, error } = await supabase
       .from("transactions")
       .select("*")
       .order("created_at", { ascending: false })
-      .limit(20);
+      .limit(50);
 
     if (error) {
       console.error("Error loading transactions:", error);
     } else {
-      setTransactions(data || []);
+      setTransactions((data as Transaction[]) || []);
     }
+  }, []);
+
+  const checkAuthAndLoadWallet = useCallback(async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      navigate("/auth");
+      return;
+    }
+    setUserId(session.user.id);
+    await loadWallet(session.user.id);
+    await loadTransactions();
+  }, [navigate, loadWallet, loadTransactions]);
+
+  useEffect(() => {
+    checkAuthAndLoadWallet();
+  }, [checkAuthAndLoadWallet]);
+
+  // Subscribe to real-time transaction updates
+  useEffect(() => {
+    if (!wallet?.id) return;
+
+    const channel = supabase
+      .channel("wallet-transactions")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "transactions",
+          filter: `wallet_id=eq.${wallet.id}`,
+        },
+        () => {
+          // Reload transactions and wallet when any change occurs
+          loadTransactions();
+          if (userId) loadWallet(userId);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [wallet?.id, userId, loadTransactions, loadWallet]);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    if (userId) {
+      await loadWallet(userId);
+    }
+    await loadTransactions();
+    setRefreshing(false);
   };
 
   const handleDeposit = async () => {
@@ -133,23 +183,20 @@ export default function Wallet() {
 
       toast({
         title: "STK Push Sent",
-        description: "Please check your phone and enter your M-Pesa PIN",
+        description: "Please check your phone and enter your M-Pesa PIN. Your balance will update automatically.",
       });
       setDepositOpen(false);
       setPhoneNumber("");
       setAmount("");
 
-      // Poll for updates
-      setTimeout(() => {
-        loadWallet(session.user.id);
-        loadTransactions();
-      }, 5000);
+      // Reload transactions to show pending
+      await loadTransactions();
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Deposit error:", error);
       toast({
         title: "Deposit failed",
-        description: error.message || "Failed to initiate deposit",
+        description: error instanceof Error ? error.message : "Failed to initiate deposit",
         variant: "destructive",
       });
     } finally {
@@ -206,20 +253,21 @@ export default function Wallet() {
       }
 
       toast({
-        title: "Withdrawal successful",
-        description: `KES ${numAmount.toLocaleString()} sent to ${phoneNumber}`,
+        title: "Withdrawal initiated",
+        description: `KES ${numAmount.toLocaleString()} will be sent to ${phoneNumber}`,
       });
       setWithdrawOpen(false);
       setPhoneNumber("");
       setAmount("");
-      loadWallet(session.user.id);
+      
+      if (userId) loadWallet(userId);
       loadTransactions();
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Withdraw error:", error);
       toast({
         title: "Withdrawal failed",
-        description: error.message || "Failed to process withdrawal",
+        description: error instanceof Error ? error.message : "Failed to process withdrawal",
         variant: "destructive",
       });
     } finally {
@@ -227,7 +275,13 @@ export default function Wallet() {
     }
   };
 
-  const getTransactionIcon = (type: string) => {
+  const getTransactionIcon = (type: string, status: string) => {
+    if (status === "pending") {
+      return <Clock className="h-4 w-4 text-yellow-500" />;
+    }
+    if (status === "failed") {
+      return <XCircle className="h-4 w-4 text-red-500" />;
+    }
     switch (type) {
       case "deposit":
       case "errand_release":
@@ -241,17 +295,37 @@ export default function Wallet() {
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case "completed":
-        return "text-green-600";
+        return (
+          <Badge variant="default" className="bg-green-600">
+            <CheckCircle2 className="h-3 w-3 mr-1" />
+            Successful
+          </Badge>
+        );
       case "pending":
-        return "text-yellow-600";
+        return (
+          <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+            <Clock className="h-3 w-3 mr-1" />
+            Processing
+          </Badge>
+        );
       case "failed":
-        return "text-red-600";
+        return (
+          <Badge variant="destructive">
+            <XCircle className="h-3 w-3 mr-1" />
+            Failed
+          </Badge>
+        );
       default:
-        return "text-muted-foreground";
+        return <Badge variant="outline">{status}</Badge>;
     }
+  };
+
+  const getFailureReason = (tx: Transaction): string | null => {
+    if (tx.status !== "failed" || !tx.metadata) return null;
+    return tx.metadata.failure_reason || tx.metadata.failed_reason || null;
   };
 
   if (loading) {
@@ -265,11 +339,16 @@ export default function Wallet() {
   return (
     <div className="min-h-screen bg-background">
       <header className="bg-card border-b sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
-            <ArrowLeft className="h-5 w-5" />
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <h1 className="text-xl font-bold">My Wallet</h1>
+          </div>
+          <Button variant="ghost" size="icon" onClick={handleRefresh} disabled={refreshing}>
+            <RefreshCw className={`h-5 w-5 ${refreshing ? "animate-spin" : ""}`} />
           </Button>
-          <h1 className="text-xl font-bold">My Wallet</h1>
         </div>
       </header>
 
@@ -422,7 +501,7 @@ export default function Wallet() {
 
         {/* Transaction History */}
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Transaction History</CardTitle>
           </CardHeader>
           <CardContent>
@@ -435,33 +514,43 @@ export default function Wallet() {
                 {transactions.map((tx) => (
                   <div
                     key={tx.id}
-                    className="flex items-center justify-between py-3 border-b last:border-0"
+                    className="flex items-start justify-between py-3 border-b last:border-0"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-full bg-muted">
-                        {getTransactionIcon(tx.type)}
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 rounded-full bg-muted mt-1">
+                        {getTransactionIcon(tx.type, tx.status)}
                       </div>
-                      <div>
+                      <div className="space-y-1">
                         <p className="font-medium capitalize">
                           {tx.type.replace("_", " ")}
                         </p>
-                        <p className="text-sm text-muted-foreground">
-                          {tx.description || tx.mpesa_reference || "—"}
+                        {tx.status === "completed" && tx.mpesa_reference && (
+                          <p className="text-xs text-muted-foreground">
+                            Ref: {tx.mpesa_reference}
+                          </p>
+                        )}
+                        {tx.status === "failed" && getFailureReason(tx) && (
+                          <p className="text-xs text-destructive">
+                            {getFailureReason(tx)}
+                          </p>
+                        )}
+                        <p className="text-xs text-muted-foreground">
+                          {format(new Date(tx.created_at), "MMM d, yyyy h:mm a")}
                         </p>
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right space-y-1">
                       <p className={`font-semibold ${
-                        tx.type === "deposit" || tx.type === "errand_release" 
+                        tx.status === "completed" && (tx.type === "deposit" || tx.type === "errand_release")
                           ? "text-green-600" 
-                          : ""
+                          : tx.status === "failed" 
+                            ? "text-muted-foreground line-through"
+                            : ""
                       }`}>
                         {tx.type === "deposit" || tx.type === "errand_release" ? "+" : "-"}
                         KES {tx.amount.toLocaleString()}
                       </p>
-                      <p className={`text-xs capitalize ${getStatusColor(tx.status)}`}>
-                        {tx.status}
-                      </p>
+                      {getStatusBadge(tx.status)}
                     </div>
                   </div>
                 ))}

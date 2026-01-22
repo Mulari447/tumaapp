@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.admin-errand-action]
 verify_jwt = false
+
+[functions.check-pending-transactions]
+verify_jwt = false
