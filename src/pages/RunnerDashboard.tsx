@@ -410,7 +410,7 @@ export default function RunnerDashboard() {
                         An issue was raised by the customer. An admin will review this.
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        Disputed on: {errand.disputed_at && format(new Date(errand.disputed_at), "MMM d, yyyy h:mm a")}
+                        Disputed
                       </p>
                     </CardContent>
                   </Card>

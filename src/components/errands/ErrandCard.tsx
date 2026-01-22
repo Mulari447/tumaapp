@@ -23,16 +23,22 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
   MapPin,
-  Clock,
   CheckCircle2,
   AlertTriangle,
   Star,
   Loader2,
   MessageSquare,
+  ChevronDown,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { ErrandMessages } from "./ErrandMessages";
 
 type ErrandStatus = "open" | "assigned" | "in_progress" | "completed" | "confirmed" | "disputed" | "paid" | "cancelled";
 
@@ -41,6 +47,7 @@ interface Errand {
   title: string;
   description: string;
   category: string;
+  customer_id: string;
   pickup_location: string | null;
   dropoff_location: string | null;
   location: string;
@@ -65,10 +72,14 @@ export function ErrandCard({ errand, isCustomer, onUpdate }: ErrandCardProps) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [disputeOpen, setDisputeOpen] = useState(false);
   const [ratingOpen, setRatingOpen] = useState(false);
+  const [messagesOpen, setMessagesOpen] = useState(false);
   const [disputeReason, setDisputeReason] = useState("");
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Show messages for active errands (assigned, in_progress, completed)
+  const canShowMessages = ["assigned", "in_progress", "completed", "disputed"].includes(errand.status) && errand.runner_id;
 
   const updateStatus = async (newStatus: string, reason?: string) => {
     setLoading(true);
@@ -239,6 +250,28 @@ export function ErrandCard({ errand, isCustomer, onUpdate }: ErrandCardProps) {
               </div>
             )}
           </div>
+
+          {/* Messaging Section */}
+          {canShowMessages && (
+            <Collapsible open={messagesOpen} onOpenChange={setMessagesOpen}>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full justify-between mt-2">
+                  <span className="flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4" />
+                    Messages
+                  </span>
+                  <ChevronDown className={`h-4 w-4 transition-transform ${messagesOpen ? "rotate-180" : ""}`} />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-2">
+                <ErrandMessages
+                  errandId={errand.id}
+                  customerId={errand.customer_id}
+                  runnerId={errand.runner_id}
+                />
+              </CollapsibleContent>
+            </Collapsible>
+          )}
         </CardContent>
       </Card>
 
