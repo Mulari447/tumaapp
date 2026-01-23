@@ -12,9 +12,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RunnerStats } from "@/components/admin/RunnerStats";
 import { VerificationQueue } from "@/components/admin/VerificationQueue";
-import { ArrowLeft, LogOut, RefreshCw, Shield } from "lucide-react";
+import { DepositTransactions } from "@/components/admin/DepositTransactions";
+import { ArrowLeft, LogOut, RefreshCw, Shield, Users, Wallet } from "lucide-react";
 
 type VerificationStatus = "pending" | "under_review" | "verified" | "rejected";
 type FilterStatus = "all" | VerificationStatus;
@@ -164,50 +166,69 @@ export default function AdminDashboard() {
       </header>
 
       <main className="container mx-auto px-4 py-8 space-y-8">
-        {/* Stats */}
-        <section>
-          <h2 className="text-lg font-semibold mb-4">Runner Verification Overview</h2>
-          <RunnerStats stats={stats} />
-        </section>
+        <Tabs defaultValue="runners" className="space-y-6">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="runners" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Runner Verification
+            </TabsTrigger>
+            <TabsTrigger value="deposits" className="flex items-center gap-2">
+              <Wallet className="h-4 w-4" />
+              Deposits
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Verification Queue */}
-        <section>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-              <CardTitle>Verification Queue</CardTitle>
-              <div className="flex items-center gap-2">
-                <Select
-                  value={filter}
-                  onValueChange={(value) => setFilter(value as FilterStatus)}
-                >
-                  <SelectTrigger className="w-40">
-                    <SelectValue placeholder="Filter by status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Runners</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="under_review">Under Review</SelectItem>
-                    <SelectItem value="verified">Verified</SelectItem>
-                    <SelectItem value="rejected">Rejected</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => {
-                    fetchStats();
-                    fetchRunners();
-                  }}
-                >
-                  <RefreshCw className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <VerificationQueue runners={runners} loading={loading} />
-            </CardContent>
-          </Card>
-        </section>
+          <TabsContent value="runners" className="space-y-8">
+            {/* Stats */}
+            <section>
+              <h2 className="text-lg font-semibold mb-4">Runner Verification Overview</h2>
+              <RunnerStats stats={stats} />
+            </section>
+
+            {/* Verification Queue */}
+            <section>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                  <CardTitle>Verification Queue</CardTitle>
+                  <div className="flex items-center gap-2">
+                    <Select
+                      value={filter}
+                      onValueChange={(value) => setFilter(value as FilterStatus)}
+                    >
+                      <SelectTrigger className="w-40">
+                        <SelectValue placeholder="Filter by status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Runners</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="under_review">Under Review</SelectItem>
+                        <SelectItem value="verified">Verified</SelectItem>
+                        <SelectItem value="rejected">Rejected</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        fetchStats();
+                        fetchRunners();
+                      }}
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <VerificationQueue runners={runners} loading={loading} />
+                </CardContent>
+              </Card>
+            </section>
+          </TabsContent>
+
+          <TabsContent value="deposits">
+            <DepositTransactions />
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
