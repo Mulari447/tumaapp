@@ -213,55 +213,19 @@ export function DepositTransactions() {
 
     setResolving(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      const res = await supabase.functions.invoke("admin-resolve-deposit", {
+        body: {
+          transaction_id: selectedTransaction.id,
+          action: resolutionAction,
+          manual_reference: manualReference || null,
+          note: resolutionNote || null,
+        },
+      });
+
+      if (res.error) throw new Error(res.error.message);
+      if (!res.data?.success) throw new Error("Resolution failed");
 
       const newStatus = resolutionAction === "complete" ? "completed" : "failed";
-      const now = new Date().toISOString();
-
-      // Update transaction
-      const updatedMetadata: TransactionMetadata = {
-        ...selectedTransaction.metadata,
-        resolved_by_admin: true,
-        admin_resolution_note: resolutionNote,
-        admin_resolved_at: now,
-        ...(resolutionAction === "complete"
-          ? { processed_at: now }
-          : { failed_at: now, failure_reason: resolutionNote || "Manually marked as failed by admin" }),
-      };
-
-      const { error: txError } = await supabase
-        .from("transactions")
-        .update({
-          status: newStatus,
-          mpesa_reference: manualReference || selectedTransaction.mpesa_reference,
-          metadata: updatedMetadata as Json,
-          updated_at: now,
-        })
-        .eq("id", selectedTransaction.id);
-
-      if (txError) throw txError;
-
-      // If completing, credit the wallet
-      if (resolutionAction === "complete") {
-        // Get wallet
-        const { data: walletData, error: walletFetchError } = await supabase
-          .from("wallets")
-          .select("balance")
-          .eq("id", selectedTransaction.wallet_id)
-          .single();
-
-        if (walletFetchError) throw walletFetchError;
-
-        const newBalance = Number(walletData.balance) + Number(selectedTransaction.amount);
-
-        const { error: walletError } = await supabase
-          .from("wallets")
-          .update({ balance: newBalance, updated_at: now })
-          .eq("id", selectedTransaction.wallet_id);
-
-        if (walletError) throw walletError;
-      }
 
       toast({
         title: "Transaction Resolved",
