@@ -105,12 +105,12 @@ export default function Wallet() {
     checkAuthAndLoadWallet();
   }, [checkAuthAndLoadWallet]);
 
-  // Subscribe to real-time transaction updates
+  // Subscribe to real-time transaction and wallet updates
   useEffect(() => {
-    if (!wallet?.id) return;
+    if (!wallet?.id || !userId) return;
 
     const channel = supabase
-      .channel("wallet-transactions")
+      .channel("wallet-realtime")
       .on(
         "postgres_changes",
         {
@@ -119,18 +119,45 @@ export default function Wallet() {
           table: "transactions",
           filter: `wallet_id=eq.${wallet.id}`,
         },
-        () => {
-          // Reload transactions and wallet when any change occurs
+        (payload) => {
+          console.log("Transaction update:", payload);
+          // Immediately reload both transactions and wallet balance
           loadTransactions();
-          if (userId) loadWallet(userId);
+          loadWallet(userId);
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "wallets",
+          filter: `id=eq.${wallet.id}`,
+        },
+        (payload) => {
+          console.log("Wallet balance update:", payload);
+          // Directly update wallet state from realtime payload
+          if (payload.new) {
+            setWallet(payload.new as WalletData);
+          }
         }
       )
       .subscribe();
 
+    // Fallback polling every 10 seconds for pending transactions
+    const pollInterval = setInterval(() => {
+      const hasPending = transactions.some(tx => tx.status === "pending");
+      if (hasPending) {
+        loadTransactions();
+        loadWallet(userId);
+      }
+    }, 10000);
+
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(pollInterval);
     };
-  }, [wallet?.id, userId, loadTransactions, loadWallet]);
+  }, [wallet?.id, userId, loadTransactions, loadWallet, transactions]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
