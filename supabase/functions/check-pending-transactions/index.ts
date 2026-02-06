@@ -60,16 +60,17 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      // Check payment status with IntaSend
+      // Check payment status with IntaSend - POST request with invoice_id in body
       try {
         const checkResponse = await fetch(
-          `https://payment.intasend.com/api/v1/payment/status/${invoiceId}/`,
+          `https://payment.intasend.com/api/v1/payment/status/`,
           {
-            method: "GET",
+            method: "POST",
             headers: {
               "Authorization": `Bearer ${intasendApiKey}`,
               "Content-Type": "application/json",
             },
+            body: JSON.stringify({ invoice_id: invoiceId }),
           }
         );
 
@@ -100,7 +101,8 @@ Deno.serve(async (req) => {
         const statusData = await checkResponse.json();
         console.log(`Status for ${tx.id}:`, statusData);
 
-        const state = statusData.state || statusData.status;
+        // IntaSend returns state in invoice.state for collection status
+        const state = statusData.invoice?.state || statusData.state || statusData.status;
 
         if (state === "COMPLETE" || state === "SUCCESSFUL") {
           // Process as successful payment
