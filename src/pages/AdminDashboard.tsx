@@ -16,7 +16,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RunnerStats } from "@/components/admin/RunnerStats";
 import { VerificationQueue } from "@/components/admin/VerificationQueue";
 import { DepositTransactions } from "@/components/admin/DepositTransactions";
-import { ArrowLeft, LogOut, RefreshCw, Shield, Users, Wallet } from "lucide-react";
+import { ManualCreditTool } from "@/components/admin/ManualCreditTool";
+import { ArrowLeft, LogOut, RefreshCw, Shield, Users, Wallet, CreditCard } from "lucide-react";
 
 type VerificationStatus = "pending" | "under_review" | "verified" | "rejected";
 type FilterStatus = "all" | VerificationStatus;
@@ -167,14 +168,18 @@ export default function AdminDashboard() {
 
       <main className="container mx-auto px-4 py-8 space-y-8">
         <Tabs defaultValue="runners" className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsList className="grid w-full max-w-lg grid-cols-3">
             <TabsTrigger value="runners" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
-              Runner Verification
+              Runners
             </TabsTrigger>
             <TabsTrigger value="deposits" className="flex items-center gap-2">
               <Wallet className="h-4 w-4" />
               Deposits
+            </TabsTrigger>
+            <TabsTrigger value="credit" className="flex items-center gap-2">
+              <CreditCard className="h-4 w-4" />
+              Manual Credit
             </TabsTrigger>
           </TabsList>
 
@@ -227,6 +232,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="deposits">
             <DepositTransactions />
+          </TabsContent>
+
+          <TabsContent value="credit">
+            <ManualCreditTool />
           </TabsContent>
         </Tabs>
       </main>
