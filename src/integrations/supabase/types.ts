@@ -140,7 +140,9 @@ export type Database = {
           estimated_hours: number | null
           hourly_rate: number | null
           id: string
+          latitude: number | null
           location: string
+          longitude: number | null
           paid_at: string | null
           pickup_location: string | null
           runner_id: string | null
@@ -167,7 +169,9 @@ export type Database = {
           estimated_hours?: number | null
           hourly_rate?: number | null
           id?: string
+          latitude?: number | null
           location: string
+          longitude?: number | null
           paid_at?: string | null
           pickup_location?: string | null
           runner_id?: string | null
@@ -194,7 +198,9 @@ export type Database = {
           estimated_hours?: number | null
           hourly_rate?: number | null
           id?: string
+          latitude?: number | null
           location?: string
+          longitude?: number | null
           paid_at?: string | null
           pickup_location?: string | null
           runner_id?: string | null
@@ -255,14 +261,19 @@ export type Database = {
           admin_notes: string | null
           bio: string | null
           created_at: string
+          current_latitude: number | null
+          current_longitude: number | null
+          driving_license_url: string | null
           email: string
           full_name: string | null
           id: string
           id_document_back_url: string | null
           id_document_url: string | null
           location: string | null
+          location_updated_at: string | null
           phone: string | null
           selfie_url: string | null
+          transport_type: string | null
           updated_at: string
           user_type: Database["public"]["Enums"]["user_type"]
           verification_status:
@@ -275,14 +286,19 @@ export type Database = {
           admin_notes?: string | null
           bio?: string | null
           created_at?: string
+          current_latitude?: number | null
+          current_longitude?: number | null
+          driving_license_url?: string | null
           email: string
           full_name?: string | null
           id: string
           id_document_back_url?: string | null
           id_document_url?: string | null
           location?: string | null
+          location_updated_at?: string | null
           phone?: string | null
           selfie_url?: string | null
+          transport_type?: string | null
           updated_at?: string
           user_type?: Database["public"]["Enums"]["user_type"]
           verification_status?:
@@ -295,14 +311,19 @@ export type Database = {
           admin_notes?: string | null
           bio?: string | null
           created_at?: string
+          current_latitude?: number | null
+          current_longitude?: number | null
+          driving_license_url?: string | null
           email?: string
           full_name?: string | null
           id?: string
           id_document_back_url?: string | null
           id_document_url?: string | null
           location?: string | null
+          location_updated_at?: string | null
           phone?: string | null
           selfie_url?: string | null
+          transport_type?: string | null
           updated_at?: string
           user_type?: Database["public"]["Enums"]["user_type"]
           verification_status?:
@@ -486,6 +507,21 @@ export type Database = {
           p_user_id: string
         }
         Returns: string
+      }
+      find_nearby_errands: {
+        Args: { radius_km?: number; runner_lat: number; runner_lng: number }
+        Returns: {
+          budget: number
+          category: Database["public"]["Enums"]["errand_category"]
+          created_at: string
+          description: string
+          distance_km: number
+          errand_id: string
+          latitude: number
+          location: string
+          longitude: number
+          title: string
+        }[]
       }
       has_role: {
         Args: {

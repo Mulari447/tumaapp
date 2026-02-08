@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from 'sonner';
-import { Loader2, User, Bike, ArrowLeft } from 'lucide-react';
+import { Loader2, User, Bike, ArrowLeft, Footprints } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const loginSchema = z.object({
@@ -31,9 +31,19 @@ const signupSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
   confirmPassword: z.string(),
   userType: z.enum(['customer', 'runner']),
+  transportType: z.enum(['foot', 'motorbike']).optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ['confirmPassword'],
+}).refine((data) => {
+  // If user is a runner, transport type is required
+  if (data.userType === 'runner' && !data.transportType) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'Please select your transport type',
+  path: ['transportType'],
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -59,6 +69,7 @@ const Auth = () => {
       password: '',
       confirmPassword: '',
       userType: 'customer',
+      transportType: undefined,
     },
   });
 
@@ -108,6 +119,7 @@ const Auth = () => {
             full_name: data.fullName,
             phone: data.phone,
             user_type: data.userType,
+            transport_type: data.userType === 'runner' ? data.transportType : null,
           },
         },
       });
@@ -328,9 +340,50 @@ const Auth = () => {
                     </div>
 
                     {signupForm.watch('userType') === 'runner' && (
-                      <p className="text-sm text-muted-foreground bg-accent/50 p-3 rounded-lg">
-                        📋 As a runner, you'll need to verify your ID after signing up to start accepting errands.
-                      </p>
+                      <div className="space-y-3">
+                        <Label>Transport Type</Label>
+                        <RadioGroup
+                          value={signupForm.watch('transportType')}
+                          onValueChange={(value) => signupForm.setValue('transportType', value as 'foot' | 'motorbike')}
+                          className="grid grid-cols-2 gap-4"
+                        >
+                          <div>
+                            <RadioGroupItem
+                              value="foot"
+                              id="foot"
+                              className="peer sr-only"
+                            />
+                            <Label
+                              htmlFor="foot"
+                              className="flex flex-col items-center justify-between rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                            >
+                              <Footprints className="mb-2 h-6 w-6" />
+                              <span className="text-sm font-medium">On Foot</span>
+                            </Label>
+                          </div>
+                          <div>
+                            <RadioGroupItem
+                              value="motorbike"
+                              id="motorbike"
+                              className="peer sr-only"
+                            />
+                            <Label
+                              htmlFor="motorbike"
+                              className="flex flex-col items-center justify-between rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                            >
+                              <Bike className="mb-2 h-6 w-6" />
+                              <span className="text-sm font-medium">Motorbike</span>
+                            </Label>
+                          </div>
+                        </RadioGroup>
+                        {signupForm.formState.errors.transportType && (
+                          <p className="text-sm text-destructive">{signupForm.formState.errors.transportType.message}</p>
+                        )}
+                        <p className="text-sm text-muted-foreground bg-accent/50 p-3 rounded-lg">
+                          📋 As a runner, you'll need to verify your ID after signing up.
+                          {signupForm.watch('transportType') === 'motorbike' && ' Motorbike riders must also upload a driving license.'}
+                        </p>
+                      </div>
                     )}
 
                     <Button type="submit" className="w-full" disabled={isLoading}>

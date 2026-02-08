@@ -16,9 +16,11 @@ import {
   ArrowLeft,
   ArrowRight,
   Shield,
-  X
+  X,
+  FileText
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { LicenseUploadStep } from '@/components/verification/LicenseUploadStep';
 
 interface UploadedFile {
   file: File;
@@ -28,19 +30,43 @@ interface UploadedFile {
   url?: string;
 }
 
+interface UserProfile {
+  transport_type: string | null;
+}
+
 const VerifyDocuments = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   
   const [idFront, setIdFront] = useState<UploadedFile | null>(null);
   const [idBack, setIdBack] = useState<UploadedFile | null>(null);
   const [selfie, setSelfie] = useState<UploadedFile | null>(null);
+  const [drivingLicense, setDrivingLicense] = useState<UploadedFile | null>(null);
+
+  const requiresLicense = profile?.transport_type === 'motorbike';
+  const totalSteps = requiresLicense ? 4 : 3;
 
   useEffect(() => {
     if (!authLoading && !user) {
       navigate('/auth');
+      return;
+    }
+    
+    // Fetch user profile to check transport_type
+    if (user) {
+      supabase
+        .from('profiles')
+        .select('transport_type')
+        .eq('id', user.id)
+        .single()
+        .then(({ data }) => {
+          if (data) {
+            setProfile(data as UserProfile);
+          }
+        });
     }
   }, [user, authLoading, navigate]);
 
@@ -110,16 +136,28 @@ const VerifyDocuments = () => {
       return;
     }
 
+    // Check if motorbike runner needs license
+    if (requiresLicense && !drivingLicense?.url) {
+      toast.error('Please upload your driving license');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
+      const updateData: Record<string, any> = {
+        id_document_url: idFront.url,
+        id_document_back_url: idBack.url,
+        selfie_url: selfie.url,
+        verification_status: 'under_review',
+      };
+
+      if (requiresLicense && drivingLicense?.url) {
+        updateData.driving_license_url = drivingLicense.url;
+      }
+
       const { error } = await supabase
         .from('profiles')
-        .update({
-          id_document_url: idFront.url,
-          id_document_back_url: idBack.url,
-          selfie_url: selfie.url,
-          verification_status: 'under_review',
-        })
+        .update(updateData)
         .eq('id', user.id);
 
       if (error) throw error;
@@ -134,10 +172,11 @@ const VerifyDocuments = () => {
     }
   };
 
-  const progress = ((currentStep - 1) / 3) * 100 + (
-    (currentStep === 1 && idFront?.uploaded ? 33 : 0) +
-    (currentStep === 2 && idBack?.uploaded ? 33 : 0) +
-    (currentStep === 3 && selfie?.uploaded ? 34 : 0)
+  const progress = ((currentStep - 1) / totalSteps) * 100 + (
+    (currentStep === 1 && idFront?.uploaded ? (100 / totalSteps) : 0) +
+    (currentStep === 2 && idBack?.uploaded ? (100 / totalSteps) : 0) +
+    (currentStep === 3 && selfie?.uploaded ? (100 / totalSteps) : 0) +
+    (currentStep === 4 && drivingLicense?.uploaded ? (100 / totalSteps) : 0)
   );
 
   const canProceed = () => {
@@ -145,9 +184,12 @@ const VerifyDocuments = () => {
       case 1: return idFront?.uploaded;
       case 2: return idBack?.uploaded;
       case 3: return selfie?.uploaded;
+      case 4: return requiresLicense ? drivingLicense?.uploaded : true;
       default: return false;
     }
   };
+
+  const isLastStep = requiresLicense ? currentStep === 4 : currentStep === 3;
 
   if (authLoading) {
     return (
@@ -306,7 +348,7 @@ const VerifyDocuments = () => {
             </div>
           )}
 
-          {currentStep === 3 && (
+          {currentStep === 3 && !requiresLicense && (
             <div className="space-y-4">
               <div className="text-center mb-6">
                 <h1 className="text-2xl font-bold mb-2">Take a Selfie</h1>
@@ -324,6 +366,42 @@ const VerifyDocuments = () => {
               )}
             </div>
           )}
+
+          {currentStep === 3 && requiresLicense && (
+            <div className="space-y-4">
+              <div className="text-center mb-6">
+                <h1 className="text-2xl font-bold mb-2">Take a Selfie</h1>
+                <p className="text-muted-foreground">
+                  Take a clear photo of yourself holding your ID card
+                </p>
+              </div>
+              {renderUploadCard(
+                'Selfie with ID',
+                'Hold your ID next to your face',
+                <Camera className="h-8 w-8 text-primary" />,
+                selfie,
+                setSelfie,
+                'selfie'
+              )}
+            </div>
+          )}
+
+          {currentStep === 4 && requiresLicense && (
+            <div className="space-y-4">
+              <div className="text-center mb-6">
+                <h1 className="text-2xl font-bold mb-2">Upload Driving License</h1>
+                <p className="text-muted-foreground">
+                  Upload a clear photo of your valid driving license
+                </p>
+              </div>
+              <LicenseUploadStep
+                userId={user?.id || ''}
+                transportType={profile?.transport_type || null}
+                licenseFile={drivingLicense}
+                onLicenseChange={setDrivingLicense}
+              />
+            </div>
+          )}
         </motion.div>
 
         {/* Navigation */}
@@ -337,7 +415,7 @@ const VerifyDocuments = () => {
             Back
           </Button>
 
-          {currentStep < 3 ? (
+          {!isLastStep ? (
             <Button
               onClick={() => setCurrentStep(currentStep + 1)}
               disabled={!canProceed()}

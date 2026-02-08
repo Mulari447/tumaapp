@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -40,9 +41,12 @@ import {
   Loader2,
   CheckCircle2,
   RefreshCw,
+  Map,
+  List,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { NearbyErrandsMap } from "@/components/maps/NearbyErrandsMap";
 
 type ErrandCategory = "groceries" | "delivery" | "cleaning" | "laundry" | "moving" | "other";
 
@@ -95,6 +99,7 @@ export default function ErrandsMarketplace() {
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [selectedErrand, setSelectedErrand] = useState<Errand | null>(null);
+  const [viewMode, setViewMode] = useState<"list" | "map">("list");
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -250,10 +255,24 @@ export default function ErrandsMarketplace() {
                 Browse and accept available errands in your area.
               </p>
             </div>
-            <Button onClick={fetchErrands} variant="outline" size="sm">
-              <RefreshCw className="h-4 w-4 mr-1" />
-              Refresh
-            </Button>
+            <div className="flex items-center gap-2">
+              <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "list" | "map")}>
+                <TabsList>
+                  <TabsTrigger value="list" className="flex items-center gap-1">
+                    <List className="h-4 w-4" />
+                    List
+                  </TabsTrigger>
+                  <TabsTrigger value="map" className="flex items-center gap-1">
+                    <Map className="h-4 w-4" />
+                    Map
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+              <Button onClick={fetchErrands} variant="outline" size="sm">
+                <RefreshCw className="h-4 w-4 mr-1" />
+                Refresh
+              </Button>
+            </div>
           </div>
 
           {/* Filters */}
@@ -302,37 +321,72 @@ export default function ErrandsMarketplace() {
             )}
           </div>
 
-          {/* Errands Grid */}
-          {loading ? (
-            <div className="flex justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          ) : filteredErrands.length === 0 ? (
-            <Card className="py-12">
-              <CardContent className="text-center">
-                <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
-                  <Search className="h-6 w-6 text-muted-foreground" />
-                </div>
-                <h3 className="text-lg font-semibold mb-2">No errands found</h3>
-                <p className="text-muted-foreground mb-4">
-                  {searchQuery || categoryFilter !== "all"
-                    ? "Try adjusting your filters or search query."
-                    : "Check back later for new errands in your area."}
-                </p>
-                {(searchQuery || categoryFilter !== "all") && (
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setSearchQuery("");
-                      setCategoryFilter("all");
-                    }}
-                  >
-                    Clear Filters
-                  </Button>
-                )}
+          {/* Map View */}
+          {viewMode === "map" && (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Map className="h-5 w-5" />
+                  Nearby Errands Map
+                </CardTitle>
+                <CardDescription>
+                  Find errands near your current location. Update your location to refresh.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <NearbyErrandsMap
+                  radiusKm={15}
+                  onErrandSelect={(errand) => {
+                    setSelectedErrand({
+                      id: errand.errand_id,
+                      title: errand.title,
+                      description: errand.description,
+                      category: errand.category as ErrandCategory,
+                      location: errand.location,
+                      budget: errand.budget,
+                      created_at: errand.created_at,
+                      customer_id: '',
+                    });
+                    setConfirmDialogOpen(true);
+                  }}
+                />
               </CardContent>
             </Card>
-          ) : (
+          )}
+
+          {/* Errands Grid (List View) */}
+          {viewMode === "list" && (
+            <>
+              {loading ? (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : filteredErrands.length === 0 ? (
+                <Card className="py-12">
+                  <CardContent className="text-center">
+                    <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
+                      <Search className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">No errands found</h3>
+                    <p className="text-muted-foreground mb-4">
+                      {searchQuery || categoryFilter !== "all"
+                        ? "Try adjusting your filters or search query."
+                        : "Check back later for new errands in your area."}
+                    </p>
+                    {(searchQuery || categoryFilter !== "all") && (
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setSearchQuery("");
+                          setCategoryFilter("all");
+                        }}
+                      >
+                        Clear Filters
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               <AnimatePresence mode="popLayout">
                 {filteredErrands.map((errand, index) => (
@@ -400,6 +454,8 @@ export default function ErrandsMarketplace() {
                 ))}
               </AnimatePresence>
             </div>
+          )}
+            </>
           )}
         </motion.div>
       </main>
