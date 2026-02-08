@@ -39,6 +39,7 @@ import {
   Clock,
   Loader2,
 } from "lucide-react";
+import { LocationPicker } from "@/components/maps/LocationPicker";
 
 const categories = [
   { value: "groceries", label: "Groceries", icon: ShoppingBag, description: "Shopping & supplies" },
@@ -94,6 +95,7 @@ export default function PostErrand() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [pickupCoords, setPickupCoords] = useState<{ lat: number; lng: number } | null>(null);
 
   const form = useForm<ErrandFormData>({
     resolver: zodResolver(errandSchema),
@@ -109,6 +111,11 @@ export default function PostErrand() {
 
   const estimatedHours = Number(form.watch("estimated_hours")) || 1;
   const calculatedPrice = calculatePrice(estimatedHours);
+
+  const handleLocationChange = (location: { lat: number; lng: number; address: string }) => {
+    setPickupCoords({ lat: location.lat, lng: location.lng });
+    form.setValue('pickup_location', location.address);
+  };
 
   const onSubmit = async (data: ErrandFormData) => {
     if (!user) {
@@ -133,6 +140,8 @@ export default function PostErrand() {
         dropoff_location: data.dropoff_location,
         estimated_hours: Number(data.estimated_hours),
         budget: calculatedPrice,
+        latitude: pickupCoords?.lat || null,
+        longitude: pickupCoords?.lng || null,
       });
 
       if (error) throw error;
@@ -264,7 +273,7 @@ export default function PostErrand() {
                     )}
                   />
 
-                  {/* Pickup Location */}
+                  {/* Pickup Location with Map */}
                   <FormField
                     control={form.control}
                     name="pickup_location"
@@ -275,9 +284,10 @@ export default function PostErrand() {
                           Pickup Location
                         </FormLabel>
                         <FormControl>
-                          <Input
-                            placeholder="e.g., Carrefour Westlands, Nairobi"
-                            {...field}
+                          <LocationPicker
+                            value={pickupCoords ? { ...pickupCoords, address: field.value } : undefined}
+                            onChange={handleLocationChange}
+                            placeholder="Enter pickup location or use current location"
                           />
                         </FormControl>
                         <FormMessage />

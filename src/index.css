@@ -115,6 +115,16 @@ All colors MUST be HSL.
   }
 }
 
+/* Leaflet map custom styles */
+.leaflet-container {
+  z-index: 0 !important;
+}
+
+.custom-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
 @layer base {
   * {
     @apply border-border;
