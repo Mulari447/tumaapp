@@ -14,6 +14,7 @@ import ErrandsMarketplace from "./pages/ErrandsMarketplace";
 import Wallet from "./pages/Wallet";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminVerificationDetail from "./pages/AdminVerificationDetail";
+import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="/wallet" element={<Wallet />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/verification/:userId" element={<AdminVerificationDetail />} />
+            <Route path="/contact" element={<Contact />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

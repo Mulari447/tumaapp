@@ -47,7 +47,7 @@ const BecomeRunner = () => {
             <p className="text-lg text-background/70 mb-8 leading-relaxed">
               Join hundreds of Nairobians already earning flexible income by helping 
               their community. Whether you're a student, freelancer, or looking for 
-              extra income — Errandi connects you with people who need help.
+              extra income — City Errands Ke connects you with people who need help.
             </p>
             
             <Button variant="hero" size="xl" className="group" asChild>
