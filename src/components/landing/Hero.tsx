@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, MapPin, Clock, Shield } from "lucide-react";
 import { motion } from "framer-motion";
-import heroImage from "@/assets/hero-image.jpg";
+import nairobiSkyline from "@/assets/nairobi-skyline.jpg";
 
 const Hero = () => {
   return (
@@ -10,8 +10,8 @@ const Hero = () => {
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0">
         <img
-          src={heroImage}
-          alt="Nairobi errand runner on motorcycle"
+          src={nairobiSkyline}
+          alt="Nairobi cityscape"
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-background via-background/95 to-background/60" />
@@ -37,7 +37,7 @@ const Hero = () => {
               <span className="text-sm font-medium text-secondary">Now serving Nairobi</span>
             </motion.div>
 
-            <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-6">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-6">
               Your errands,{" "}
               <span className="text-gradient">done for you</span>
             </h1>

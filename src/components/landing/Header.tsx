@@ -14,14 +14,14 @@ const Header = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
-          <div className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2">
             <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-xl">E</span>
+              <span className="text-primary-foreground font-bold text-xl">CE</span>
             </div>
-            <span className="font-display font-bold text-xl text-foreground">
-              Errandi
+            <span className="font-bold text-xl text-foreground">
+              City Errands <span className="text-primary">Ke</span>
             </span>
-          </div>
+          </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
@@ -34,6 +34,9 @@ const Header = () => {
             <a href="#become-runner" className="text-muted-foreground hover:text-foreground transition-colors">
               Become a Runner
             </a>
+            <Link to="/contact" className="text-muted-foreground hover:text-foreground transition-colors">
+              Contact
+            </Link>
           </nav>
 
           {/* Desktop CTA */}
@@ -96,6 +99,13 @@ const Header = () => {
                 >
                   Become a Runner
                 </a>
+                <Link
+                  to="/contact"
+                  className="text-muted-foreground hover:text-foreground transition-colors py-2"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Contact
+                </Link>
                 <div className="flex flex-col gap-2 pt-4 border-t border-border">
                   {user ? (
                     <Button variant="default" className="justify-center" asChild>

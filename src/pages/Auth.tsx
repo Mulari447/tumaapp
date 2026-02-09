@@ -12,8 +12,9 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { toast } from 'sonner';
-import { Loader2, User, Bike, ArrowLeft, Footprints } from 'lucide-react';
+import { Loader2, User, Bike, ArrowLeft, Footprints, Mail } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const loginSchema = z.object({
@@ -36,7 +37,6 @@ const signupSchema = z.object({
   message: "Passwords don't match",
   path: ['confirmPassword'],
 }).refine((data) => {
-  // If user is a runner, transport type is required
   if (data.userType === 'runner' && !data.transportType) {
     return false;
   }
@@ -54,6 +54,14 @@ const Auth = () => {
   const { user, loading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
+  
+  // OTP verification state
+  const [showOTPVerification, setShowOTPVerification] = useState(false);
+  const [otpValue, setOtpValue] = useState('');
+  const [generatedOTP, setGeneratedOTP] = useState('');
+  const [pendingSignupData, setPendingSignupData] = useState<SignupFormData | null>(null);
+  const [sendingOTP, setSendingOTP] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
 
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -78,6 +86,32 @@ const Auth = () => {
       navigate('/dashboard');
     }
   }, [user, authLoading, navigate]);
+
+  const generateOTP = () => {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  };
+
+  const sendOTPEmail = async (email: string, otp: string) => {
+    setSendingOTP(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-otp', {
+        body: { email, otp },
+      });
+
+      if (error) throw error;
+      
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to send OTP');
+      }
+
+      return true;
+    } catch (error: any) {
+      console.error('Error sending OTP:', error);
+      throw error;
+    } finally {
+      setSendingOTP(false);
+    }
+  };
 
   const handleLogin = async (data: LoginFormData) => {
     setIsLoading(true);
@@ -105,10 +139,42 @@ const Auth = () => {
     }
   };
 
-  const handleSignup = async (data: SignupFormData) => {
+  const handleSignupSubmit = async (data: SignupFormData) => {
+    setIsLoading(true);
+    try {
+      // Generate OTP and send to email
+      const otp = generateOTP();
+      setGeneratedOTP(otp);
+      setPendingSignupData(data);
+
+      await sendOTPEmail(data.email, otp);
+      
+      setShowOTPVerification(true);
+      setOtpSent(true);
+      toast.success('Verification code sent to your email!');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to send verification code. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyOTP = async () => {
+    if (otpValue !== generatedOTP) {
+      toast.error('Invalid verification code. Please try again.');
+      return;
+    }
+
+    if (!pendingSignupData) {
+      toast.error('Session expired. Please try again.');
+      setShowOTPVerification(false);
+      return;
+    }
+
     setIsLoading(true);
     try {
       const redirectUrl = `${window.location.origin}/dashboard`;
+      const data = pendingSignupData;
 
       const { error } = await supabase.auth.signUp({
         email: data.email,
@@ -147,6 +213,20 @@ const Auth = () => {
     }
   };
 
+  const handleResendOTP = async () => {
+    if (!pendingSignupData) return;
+    
+    try {
+      const otp = generateOTP();
+      setGeneratedOTP(otp);
+      await sendOTPEmail(pendingSignupData.email, otp);
+      setOtpValue('');
+      toast.success('New verification code sent!');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to resend code. Please try again.');
+    }
+  };
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -155,8 +235,97 @@ const Auth = () => {
     );
   }
 
+  // OTP Verification Screen
+  if (showOTPVerification) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-muted via-background to-muted flex flex-col">
+        <header className="p-4">
+          <button
+            onClick={() => {
+              setShowOTPVerification(false);
+              setOtpValue('');
+            }}
+            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </button>
+        </header>
+
+        <div className="flex-1 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="w-full max-w-md"
+          >
+            <Card className="border-0 shadow-xl bg-card/95 backdrop-blur">
+              <CardHeader className="text-center pb-2">
+                <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Mail className="h-8 w-8 text-primary" />
+                </div>
+                <CardTitle className="text-2xl">Verify Your Email</CardTitle>
+                <CardDescription>
+                  We've sent a 6-digit verification code to<br />
+                  <span className="font-medium text-foreground">{pendingSignupData?.email}</span>
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex justify-center">
+                  <InputOTP
+                    maxLength={6}
+                    value={otpValue}
+                    onChange={setOtpValue}
+                  >
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                      <InputOTPSlot index={3} />
+                      <InputOTPSlot index={4} />
+                      <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                  </InputOTP>
+                </div>
+
+                <Button
+                  onClick={handleVerifyOTP}
+                  className="w-full"
+                  disabled={otpValue.length !== 6 || isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Verifying...
+                    </>
+                  ) : (
+                    'Verify & Create Account'
+                  )}
+                </Button>
+
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Didn't receive the code?
+                  </p>
+                  <Button
+                    variant="link"
+                    onClick={handleResendOTP}
+                    disabled={sendingOTP}
+                    className="text-primary"
+                  >
+                    {sendingOTP ? 'Sending...' : 'Resend Code'}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sand-light via-background to-sand-light flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-muted via-background to-muted flex flex-col">
       {/* Header */}
       <header className="p-4">
         <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
@@ -175,10 +344,13 @@ const Auth = () => {
         >
           <Card className="border-0 shadow-xl bg-card/95 backdrop-blur">
             <CardHeader className="text-center pb-2">
-              <div className="mx-auto mb-4">
-                <span className="text-3xl font-bold text-primary">Errandi</span>
+              <div className="mx-auto mb-4 flex items-center gap-2">
+                <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
+                  <span className="text-primary-foreground font-bold text-lg">CE</span>
+                </div>
+                <span className="text-2xl font-bold">City Errands <span className="text-primary">Ke</span></span>
               </div>
-              <CardTitle className="text-2xl">Welcome</CardTitle>
+              <CardTitle className="text-xl">Welcome</CardTitle>
               <CardDescription>
                 {activeTab === 'login' 
                   ? 'Sign in to your account to continue'
@@ -235,7 +407,7 @@ const Auth = () => {
 
                 {/* Signup Tab */}
                 <TabsContent value="signup">
-                  <form onSubmit={signupForm.handleSubmit(handleSignup)} className="space-y-4">
+                  <form onSubmit={signupForm.handleSubmit(handleSignupSubmit)} className="space-y-4">
                     {/* User Type Selection */}
                     <div className="space-y-3">
                       <Label>I want to...</Label>
@@ -386,11 +558,11 @@ const Auth = () => {
                       </div>
                     )}
 
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                      {isLoading ? (
+                    <Button type="submit" className="w-full" disabled={isLoading || sendingOTP}>
+                      {isLoading || sendingOTP ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Creating account...
+                          {sendingOTP ? 'Sending verification code...' : 'Creating account...'}
                         </>
                       ) : (
                         'Create Account'
