@@ -349,7 +349,10 @@ const Dashboard = () => {
                     </div>
                   </CardContent>
                 </Card>
-                <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+                <Card 
+                  className="cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => navigate('/runner-dashboard')}
+                >
                   <CardContent className="p-6 flex items-center gap-4">
                     <div className="p-3 bg-primary/10 rounded-full">
                       <Clock className="h-6 w-6 text-primary" />
@@ -357,7 +360,7 @@ const Dashboard = () => {
                     <div>
                       <h3 className="font-semibold">My Jobs</h3>
                       <p className="text-sm text-muted-foreground">
-                        View your completed jobs
+                        Track & manage your accepted errands
                       </p>
                     </div>
                   </CardContent>
