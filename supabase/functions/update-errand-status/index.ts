@@ -101,8 +101,25 @@ Deno.serve(async (req) => {
     const isCustomer = errand.customer_id === user.id;
     const isRunner = errand.runner_id === user.id;
 
+    // Allow any verified runner to accept an open errand
+    if (new_status === "assigned" && currentStatus === "open") {
+      // Verify the user is a verified runner
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("user_type, verification_status")
+        .eq("id", user.id)
+        .single();
+
+      if (!profile || profile.user_type !== "runner" || profile.verification_status !== "verified") {
+        return new Response(JSON.stringify({ error: "Only verified runners can accept errands" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      // Allowed - skip further auth checks for this transition
+    }
     // Runner actions: assigned -> in_progress, in_progress -> completed
-    if ((new_status === "in_progress" || new_status === "completed") && !isRunner && !isAdmin) {
+    else if ((new_status === "in_progress" || new_status === "completed") && !isRunner && !isAdmin) {
       return new Response(JSON.stringify({ error: "Only the assigned runner can update to this status" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -121,6 +138,11 @@ Deno.serve(async (req) => {
     const updateData: Record<string, unknown> = {
       status: new_status,
     };
+
+    // Set runner_id when accepting an errand
+    if (new_status === "assigned" && currentStatus === "open") {
+      updateData.runner_id = user.id;
+    }
 
     // Add timestamp for the new status
     const now = new Date().toISOString();

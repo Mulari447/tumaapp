@@ -189,14 +189,9 @@ export default function ErrandsMarketplace() {
     setConfirmDialogOpen(false);
 
     try {
-      const { error } = await supabase
-        .from("errands")
-        .update({
-          runner_id: user.id,
-          status: "assigned",
-        })
-        .eq("id", selectedErrand.id)
-        .eq("status", "open");
+      const { data, error } = await supabase.functions.invoke("update-errand-status", {
+        body: { errand_id: selectedErrand.id, new_status: "assigned" },
+      });
 
       if (error) throw error;
 
