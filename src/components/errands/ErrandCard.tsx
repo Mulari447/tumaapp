@@ -124,8 +124,8 @@ export function ErrandCard({ errand, isCustomer, onUpdate }: ErrandCardProps) {
     try {
       const { error } = await supabase.from("ratings").insert({
         errand_id: errand.id,
-        customer_id: errand.id, // Will be replaced with actual customer id
-        runner_id: errand.runner_id,
+        customer_id: errand.customer_id,
+        runner_id: errand.runner_id!,
         rating,
         comment: comment || null,
       });
