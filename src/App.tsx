@@ -15,6 +15,7 @@ import Wallet from "./pages/Wallet";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminVerificationDetail from "./pages/AdminVerificationDetail";
 import Contact from "./pages/Contact";
+import RunnerDashboard from "./pages/RunnerDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/verification/:userId" element={<AdminVerificationDetail />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/runner-dashboard" element={<RunnerDashboard />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

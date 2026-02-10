@@ -226,7 +226,7 @@ export default function ErrandsMarketplace() {
       {/* Header */}
       <header className="p-4 border-b bg-card/50 backdrop-blur sticky top-0 z-50">
         <div className="container mx-auto flex items-center justify-between">
-          <Link to="/" className="text-2xl font-bold text-primary">Errandi</Link>
+          <Link to="/" className="text-2xl font-bold">City Errands <span className="text-primary">Ke</span></Link>
           <Button variant="ghost" size="sm" asChild>
             <Link to="/dashboard">
               <ArrowLeft className="h-4 w-4 mr-1" />
