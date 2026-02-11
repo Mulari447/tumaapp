@@ -18,7 +18,8 @@ import {
   AlertCircle,
   FileText,
   Plus,
-  Wallet
+  Wallet,
+  Home,
 } from 'lucide-react';
 
 type VerificationStatus = 'pending' | 'under_review' | 'verified' | 'rejected';
@@ -330,6 +331,22 @@ const Dashboard = () => {
                     </div>
                   </CardContent>
                 </Card>
+                <Card 
+                  className="cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => navigate('/house-listings')}
+                >
+                  <CardContent className="p-6 flex items-center gap-4">
+                    <div className="p-3 bg-primary/10 rounded-full">
+                      <Home className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">House Hunting</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Browse available houses
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
               </>
             ) : (
               <>
@@ -361,6 +378,22 @@ const Dashboard = () => {
                       <h3 className="font-semibold">My Jobs</h3>
                       <p className="text-sm text-muted-foreground">
                         Track & manage your accepted errands
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card 
+                  className="cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => navigate('/post-house-listing')}
+                >
+                  <CardContent className="p-6 flex items-center gap-4">
+                    <div className="p-3 bg-primary/10 rounded-full">
+                      <Home className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">Post a House</h3>
+                      <p className="text-sm text-muted-foreground">
+                        List houses for customers
                       </p>
                     </div>
                   </CardContent>

@@ -16,6 +16,8 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminVerificationDetail from "./pages/AdminVerificationDetail";
 import Contact from "./pages/Contact";
 import RunnerDashboard from "./pages/RunnerDashboard";
+import HouseListings from "./pages/HouseListings";
+import PostHouseListing from "./pages/PostHouseListing";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +42,8 @@ const App = () => (
             <Route path="/admin/verification/:userId" element={<AdminVerificationDetail />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/runner-dashboard" element={<RunnerDashboard />} />
+            <Route path="/house-listings" element={<HouseListings />} />
+            <Route path="/post-house-listing" element={<PostHouseListing />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
