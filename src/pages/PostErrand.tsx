@@ -86,10 +86,9 @@ const errandSchema = z.object({
 
 type ErrandFormData = z.infer<typeof errandSchema>;
 
-const BASE_RATE = 150;
-const HOURLY_RATE = 150;
+const ACCESS_FEE = 200;
 
-const calculatePrice = (hours: number) => BASE_RATE + (hours * HOURLY_RATE);
+const calculatePrice = () => ACCESS_FEE;
 
 export default function PostErrand() {
   const navigate = useNavigate();
@@ -110,7 +109,7 @@ export default function PostErrand() {
   });
 
   const estimatedHours = Number(form.watch("estimated_hours")) || 1;
-  const calculatedPrice = calculatePrice(estimatedHours);
+  const calculatedPrice = ACCESS_FEE;
 
   const handleLocationChange = (location: { lat: number; lng: number; address: string }) => {
     setPickupCoords({ lat: location.lat, lng: location.lng });
@@ -128,6 +127,23 @@ export default function PostErrand() {
       return;
     }
 
+    // Check wallet balance
+    const { data: wallet, error: walletError } = await supabase
+      .from("wallets")
+      .select("balance")
+      .eq("user_id", user.id)
+      .single();
+
+    if (walletError || !wallet || wallet.balance < ACCESS_FEE) {
+      toast({
+        title: "Insufficient Balance",
+        description: `You need at least KES ${ACCESS_FEE} in your wallet to post an errand. Please deposit funds first.`,
+        variant: "destructive",
+      });
+      navigate("/wallet");
+      return;
+    }
+
     setLoading(true);
     try {
       const { error } = await supabase.from("errands").insert({
@@ -135,7 +151,7 @@ export default function PostErrand() {
         title: data.title,
         category: data.category,
         description: data.description,
-        location: data.pickup_location, // Keep for backwards compatibility
+        location: data.pickup_location,
         pickup_location: data.pickup_location,
         dropoff_location: data.dropoff_location,
         estimated_hours: Number(data.estimated_hours),
@@ -146,9 +162,25 @@ export default function PostErrand() {
 
       if (error) throw error;
 
+      // Deduct access fee from wallet
+      await supabase.from("transactions").insert({
+        wallet_id: (await supabase.from("wallets").select("id").eq("user_id", user.id).single()).data!.id,
+        type: "errand_payment" as const,
+        amount: ACCESS_FEE,
+        status: "completed" as const,
+        description: `Access fee for errand: ${data.title}`,
+      });
+
+      // Update wallet balance
+      await supabase.rpc("log_status_change" as never); // We'll handle this via direct update
+      await supabase
+        .from("wallets")
+        .update({ balance: wallet.balance - ACCESS_FEE })
+        .eq("user_id", user.id);
+
       toast({
         title: "Errand Posted! 🎉",
-        description: "Your errand request has been published. Runners will be notified.",
+        description: "Your errand has been published. You can negotiate the final price with the runner via chat.",
       });
 
       navigate("/my-errands");
@@ -341,19 +373,22 @@ export default function PostErrand() {
                     )}
                   />
 
-                  {/* Calculated Price */}
+                  {/* Access Fee */}
                   <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium">Total Price</p>
+                        <p className="text-sm font-medium">Access Fee</p>
                         <p className="text-xs text-muted-foreground">
-                          Base rate (KES {BASE_RATE}) + {estimatedHours} hrs × KES {HOURLY_RATE}
+                          One-time fee to post this errand. Negotiate final price with your runner via chat.
                         </p>
                       </div>
                       <p className="text-2xl font-bold text-primary">
-                        KES {calculatedPrice.toLocaleString()}
+                        KES {ACCESS_FEE}
                       </p>
                     </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      📱 Contact runner at <strong>0748 390 976</strong> for inquiries
+                    </p>
                   </div>
 
                   {/* Submit */}
