@@ -125,7 +125,7 @@ export default function Contact() {
                   <div>
                     <h3 className="font-semibold text-foreground mb-1">Call Us</h3>
                     <a href="tel:+254700000000" className="text-primary hover:underline text-sm">
-                      +254 700 000 000
+                      +254 748 390 976
                     </a>
                     <p className="text-muted-foreground text-sm mt-1">
                       Mon-Sat, 8am - 8pm EAT
