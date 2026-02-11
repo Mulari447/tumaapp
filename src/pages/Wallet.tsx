@@ -57,6 +57,7 @@ export default function Wallet() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [amount, setAmount] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
+  const [userType, setUserType] = useState<string>("customer");
 
   const loadWallet = useCallback(async (uid: string) => {
     const { data, error } = await supabase
@@ -97,6 +98,15 @@ export default function Wallet() {
       return;
     }
     setUserId(session.user.id);
+    
+    // Fetch user type
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("user_type")
+      .eq("id", session.user.id)
+      .single();
+    if (profile) setUserType(profile.user_type);
+    
     await loadWallet(session.user.id);
     await loadTransactions();
   }, [navigate, loadWallet, loadTransactions]);
@@ -467,6 +477,7 @@ export default function Wallet() {
             </DialogContent>
           </Dialog>
 
+          {userType === "runner" && (
           <Dialog open={withdrawOpen} onOpenChange={setWithdrawOpen}>
             <DialogTrigger asChild>
               <Button className="h-14" disabled={!wallet || wallet.balance < 10}>
@@ -524,6 +535,7 @@ export default function Wallet() {
               </div>
             </DialogContent>
           </Dialog>
+          )}
         </div>
 
         {/* Transaction History */}

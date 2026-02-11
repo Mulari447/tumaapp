@@ -19,7 +19,16 @@ import {
   MapPin,
   Play,
   Flag,
+  MessageSquare,
+  ChevronDown,
+  Wallet,
 } from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { ErrandMessages } from "@/components/errands/ErrandMessages";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
@@ -30,6 +39,7 @@ interface Errand {
   title: string;
   description: string;
   category: string;
+  customer_id: string;
   pickup_location: string | null;
   dropoff_location: string | null;
   location: string;
@@ -152,6 +162,12 @@ export default function RunnerDashboard() {
     return <Badge variant={variant}>{label}</Badge>;
   };
 
+  const [openMessages, setOpenMessages] = useState<Record<string, boolean>>({});
+
+  const toggleMessages = (errandId: string) => {
+    setOpenMessages(prev => ({ ...prev, [errandId]: !prev[errandId] }));
+  };
+
   const activeErrands = errands.filter((e) => ["assigned", "in_progress"].includes(e.status));
   const completedErrands = errands.filter((e) => ["completed", "confirmed", "paid"].includes(e.status));
   const disputedErrands = errands.filter((e) => e.status === "disputed");
@@ -174,6 +190,12 @@ export default function RunnerDashboard() {
               <Link to="/dashboard">
                 <ArrowLeft className="h-4 w-4 mr-1" />
                 Dashboard
+              </Link>
+            </Button>
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/wallet">
+                <Wallet className="h-4 w-4 mr-1" />
+                Wallet
               </Link>
             </Button>
             <Button variant="outline" size="sm" asChild>
@@ -331,6 +353,26 @@ export default function RunnerDashboard() {
                           )}
                         </div>
                       </div>
+
+                      {/* Messages */}
+                      <Collapsible open={openMessages[errand.id]} onOpenChange={() => toggleMessages(errand.id)}>
+                        <CollapsibleTrigger asChild>
+                          <Button variant="ghost" className="w-full justify-between mt-2">
+                            <span className="flex items-center gap-2">
+                              <MessageSquare className="h-4 w-4" />
+                              Chat with Customer
+                            </span>
+                            <ChevronDown className={`h-4 w-4 transition-transform ${openMessages[errand.id] ? "rotate-180" : ""}`} />
+                          </Button>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="mt-2">
+                          <ErrandMessages
+                            errandId={errand.id}
+                            customerId={errand.customer_id || ""}
+                            runnerId={user!.id}
+                          />
+                        </CollapsibleContent>
+                      </Collapsible>
                     </CardContent>
                   </Card>
                 ))
