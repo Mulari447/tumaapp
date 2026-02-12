@@ -236,7 +236,7 @@ export default function Contact() {
       <footer className="bg-primary text-primary-foreground py-8">
         <div className="container mx-auto px-4 text-center">
           <p className="text-sm text-primary-foreground/70">
-            © 2026 City Errands Ke. All rights reserved.
+            © 2026 City Errands Ke. All rights reserved. Made With Love By Mulari Dan
           </p>
         </div>
       </footer>

@@ -276,6 +276,73 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Refund posting fee when errand is cancelled or unassigned (assigned -> open)
+    if (new_status === "cancelled" || (new_status === "open" && currentStatus === "assigned")) {
+      try {
+        const { data: customerWallet } = await supabase
+          .from("wallets")
+          .select("*")
+          .eq("user_id", errand.customer_id)
+          .single();
+
+        if (customerWallet) {
+          // Find the original errand posting payment (errand_payment)
+          const { data: feeTx } = await supabase
+            .from("transactions")
+            .select("*")
+            .eq("errand_id", errand_id)
+            .eq("type", "errand_payment")
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .single();
+
+          if (feeTx && feeTx.amount && feeTx.status === "completed") {
+            const refundAmount = parseFloat(String(feeTx.amount)) || 0;
+            if (refundAmount > 0) {
+              // Check for existing refund to avoid double refunds
+              const { data: existingRefunds } = await supabase
+                .from("transactions")
+                .select("id")
+                .eq("errand_id", errand_id)
+                .eq("type", "refund")
+                .limit(1);
+
+              if (!existingRefunds || existingRefunds.length === 0) {
+                // Create refund transaction
+                await supabase.from("transactions").insert({
+                  wallet_id: customerWallet.id,
+                  errand_id,
+                  type: "refund",
+                  amount: refundAmount,
+                  status: "completed",
+                  description: `Refund for errand posting fee (${new_status})`,
+                });
+
+                // Credit customer wallet balance
+                await supabase
+                  .from("wallets")
+                  .update({ balance: parseFloat(customerWallet.balance) + refundAmount })
+                  .eq("id", customerWallet.id);
+
+                // Notify customer about refund
+                await supabase.rpc("create_notification", {
+                  p_user_id: errand.customer_id,
+                  p_type: "job_reassigned",
+                  p_title: "Posting Fee Refunded",
+                  p_message: `KES ${refundAmount.toFixed(2)} has been refunded for your errand "${errand.title}"`,
+                  p_errand_id: errand_id,
+                });
+              } else {
+                console.log("Refund already exists for errand", errand_id);
+              }
+            }
+          }
+        }
+      } catch (refundErr) {
+        console.error("Refund error:", refundErr);
+      }
+    }
+
     // If confirmed, release payment
     if (new_status === "confirmed" && errand.runner_id) {
       // Get wallets
