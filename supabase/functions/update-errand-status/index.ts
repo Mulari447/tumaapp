@@ -195,6 +195,58 @@ Deno.serve(async (req) => {
       p_notes: notes || null,
     });
 
+    // Track runner's first gig completion for billing activation
+    if (new_status === "confirmed" && errand.runner_id) {
+      try {
+        // Get the runner's subscription
+        const { data: subscription } = await supabase
+          .from("runner_subscriptions")
+          .select("*")
+          .eq("runner_id", errand.runner_id)
+          .single();
+
+        if (subscription && !subscription.billing_activated) {
+          // Increment gigs_completed counter
+          const newGigCount = (subscription.gigs_completed || 0) + 1;
+          
+          // Update subscription to mark first gig as completed
+          const updateSub: Record<string, unknown> = {
+            gigs_completed: newGigCount,
+            first_gig_completed_at: now,
+          };
+
+          // If this is the first completed gig during trial, activate billing
+          if (subscription.status === "trial" && newGigCount === 1) {
+            updateSub.billing_activated = true;
+            // Schedule the first billing for the end of trial
+            updateSub.next_billing_at = subscription.trial_end_at;
+          } else if (subscription.status === "paused" && !subscription.billing_activated && newGigCount >= 1) {
+            // If paused and now has a completed gig, activate billing
+            updateSub.status = "active";
+            updateSub.active = true;
+            updateSub.billing_activated = true;
+            updateSub.next_billing_at = now;
+            
+            // Notify runner that billing has been activated
+            await supabase.rpc("create_notification", {
+              p_user_id: errand.runner_id,
+              p_type: "admin_action",
+              p_title: "Billing Activated",
+              p_message: "Congratulations! You've completed your first gig. Your weekly subscription billing (KES 300/week) is now active. Week 1 is free, and billing starts from Week 2.",
+              p_errand_id: errand_id,
+            });
+          }
+
+          await supabase
+            .from("runner_subscriptions")
+            .update(updateSub)
+            .eq("id", subscription.id);
+        }
+      } catch (subErr) {
+        console.error("Subscription tracking error:", subErr);
+      }
+    }
+
     // Create notifications based on status change
     const notifications: Array<{
       user_id: string;

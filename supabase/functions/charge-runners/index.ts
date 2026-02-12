@@ -102,10 +102,10 @@ Deno.serve(async (req) => {
                     // Perform atomic-ish operations: create transaction and update wallet
                     await supabase.from("transactions").insert({
                       wallet_id: wallet.id,
-                      type: "withdrawal",
+                      type: "runner_subscription",
                       amount: fee,
                       status: "completed",
-                      description: `Weekly subscription fee`,
+                      description: `Weekly subscription fee - KES ${fee}`,
                     });
 
                     await supabase.from("wallets").update({ balance: currentBalance - fee }).eq("id", wallet.id);

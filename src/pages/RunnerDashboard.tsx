@@ -29,6 +29,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ErrandMessages } from "@/components/errands/ErrandMessages";
+import { RunnerBillingStatus } from "@/components/runner/RunnerBillingStatus";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
@@ -206,6 +207,11 @@ export default function RunnerDashboard() {
       </header>
 
       <main className="container mx-auto px-4 py-8 space-y-8">
+        {/* Billing Status */}
+        <section>
+          <RunnerBillingStatus />
+        </section>
+
         {/* Stats Cards */}
         <section>
           <h2 className="text-xl font-semibold mb-4">Your Performance</h2>

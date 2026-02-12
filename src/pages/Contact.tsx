@@ -124,7 +124,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-foreground mb-1">Call Us</h3>
-                    <a href="tel:+254700000000" className="text-primary hover:underline text-sm">
+                    <a href="tel:+254748390979" className="text-primary hover:underline text-sm">
                       +254 748 390 976
                     </a>
                     <p className="text-muted-foreground text-sm mt-1">
