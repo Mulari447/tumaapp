@@ -14,6 +14,8 @@ import ErrandsMarketplace from "./pages/ErrandsMarketplace";
 import Wallet from "./pages/Wallet";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminVerificationDetail from "./pages/AdminVerificationDetail";
+import AdminSubscriptions from "./pages/AdminSubscriptions";
+import AdminSubscriptionsDashboard from "./pages/AdminSubscriptionsDashboard";
 import Contact from "./pages/Contact";
 import RunnerDashboard from "./pages/RunnerDashboard";
 import HouseListings from "./pages/HouseListings";
@@ -40,6 +42,8 @@ const App = () => (
             <Route path="/wallet" element={<Wallet />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/verification/:userId" element={<AdminVerificationDetail />} />
+            <Route path="/admin/subscriptions/create" element={<AdminSubscriptions />} />
+            <Route path="/admin/subscriptions" element={<AdminSubscriptionsDashboard />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/runner-dashboard" element={<RunnerDashboard />} />
             <Route path="/house-listings" element={<HouseListings />} />
