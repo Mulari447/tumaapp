@@ -51,7 +51,6 @@ export default function Wallet() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [depositOpen, setDepositOpen] = useState(false);
-  const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -241,76 +240,7 @@ export default function Wallet() {
     }
   };
 
-  const handleWithdraw = async () => {
-    if (!phoneNumber || !amount) {
-      toast({
-        title: "Missing fields",
-        description: "Please enter phone number and amount",
-        variant: "destructive",
-      });
-      return;
-    }
 
-    const numAmount = parseFloat(amount);
-    if (numAmount < 10) {
-      toast({
-        title: "Invalid amount",
-        description: "Minimum withdrawal is KES 10",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (wallet && numAmount > wallet.balance) {
-      toast({
-        title: "Insufficient balance",
-        description: `Your available balance is KES ${wallet.balance.toLocaleString()}`,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setProcessing(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate("/auth");
-        return;
-      }
-
-      const response = await supabase.functions.invoke("mpesa-withdraw", {
-        body: {
-          phone_number: phoneNumber,
-          amount: numAmount,
-        },
-      });
-
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-
-      toast({
-        title: "Withdrawal initiated",
-        description: `KES ${numAmount.toLocaleString()} will be sent to ${phoneNumber}`,
-      });
-      setWithdrawOpen(false);
-      setPhoneNumber("");
-      setAmount("");
-      
-      if (userId) loadWallet(userId);
-      loadTransactions();
-
-    } catch (error: unknown) {
-      console.error("Withdraw error:", error);
-      toast({
-        title: "Withdrawal failed",
-        description: error instanceof Error ? error.message : "Failed to process withdrawal",
-        variant: "destructive",
-      });
-    } finally {
-      setProcessing(false);
-    }
-  };
 
   const getTransactionIcon = (type: string, status: string) => {
     if (status === "pending") {
@@ -400,7 +330,7 @@ export default function Wallet() {
               <p className="text-3xl font-bold">
                 KES {wallet?.balance?.toLocaleString() || "0"}
               </p>
-              <p className="text-sm opacity-75 mt-1">Ready to withdraw</p>
+              <p className="text-sm opacity-75 mt-1">Available for errands</p>
             </CardContent>
           </Card>
 
@@ -477,65 +407,7 @@ export default function Wallet() {
             </DialogContent>
           </Dialog>
 
-          {userType === "runner" && (
-          <Dialog open={withdrawOpen} onOpenChange={setWithdrawOpen}>
-            <DialogTrigger asChild>
-              <Button className="h-14" disabled={!wallet || wallet.balance < 10}>
-                <ArrowUpRight className="h-5 w-5 mr-2" />
-                Withdraw
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Withdraw to M-Pesa</DialogTitle>
-                <DialogDescription>
-                  Available: KES {wallet?.balance?.toLocaleString() || "0"}
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 pt-4">
-                <div className="space-y-2">
-                  <Label htmlFor="withdraw-phone">M-Pesa Phone Number</Label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="withdraw-phone"
-                      placeholder="0712345678"
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="withdraw-amount">Amount (KES)</Label>
-                  <Input
-                    id="withdraw-amount"
-                    type="number"
-                    placeholder="1000"
-                    min="10"
-                    max={wallet?.balance || 0}
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                  />
-                </div>
-                <Button 
-                  onClick={handleWithdraw} 
-                  disabled={processing} 
-                  className="w-full"
-                >
-                  {processing ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    "Withdraw Now"
-                  )}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-          )}
+
         </div>
 
         {/* Transaction History */}
