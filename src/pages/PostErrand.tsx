@@ -127,10 +127,10 @@ export default function PostErrand() {
       return;
     }
 
-    // Check wallet balance
+    // Check wallet balance and get wallet ID
     const { data: wallet, error: walletError } = await supabase
       .from("wallets")
-      .select("balance")
+      .select("id, balance")
       .eq("user_id", user.id)
       .single();
 
@@ -146,7 +146,8 @@ export default function PostErrand() {
 
     setLoading(true);
     try {
-      const { error } = await supabase.from("errands").insert({
+      // Insert errand first
+      const { data: errandData, error: errandError } = await supabase.from("errands").insert({
         customer_id: user.id,
         title: data.title,
         category: data.category,
@@ -158,25 +159,31 @@ export default function PostErrand() {
         budget: calculatedPrice,
         latitude: pickupCoords?.lat || null,
         longitude: pickupCoords?.lng || null,
-      });
+      }).select();
 
-      if (error) throw error;
+      if (errandError) throw errandError;
+      const errandId = errandData?.[0]?.id;
 
-      // Deduct access fee from wallet
-      await supabase.from("transactions").insert({
-        wallet_id: (await supabase.from("wallets").select("id").eq("user_id", user.id).single()).data!.id,
+      // Create transaction record
+      const { error: transactionError } = await supabase.from("transactions").insert({
+        wallet_id: wallet.id,
+        errand_id: errandId,
         type: "errand_payment" as const,
         amount: ACCESS_FEE,
         status: "completed" as const,
         description: `Access fee for errand: ${data.title}`,
       });
 
-      // Update wallet balance
-      await supabase.rpc("log_status_change" as never); // We'll handle this via direct update
-      await supabase
+      if (transactionError) throw transactionError;
+
+      // Update wallet balance atomically
+      const newBalance = parseFloat(String(wallet.balance)) - ACCESS_FEE;
+      const { error: updateError } = await supabase
         .from("wallets")
-        .update({ balance: wallet.balance - ACCESS_FEE })
-        .eq("user_id", user.id);
+        .update({ balance: newBalance })
+        .eq("id", wallet.id);
+
+      if (updateError) throw updateError;
 
       toast({
         title: "Errand Posted! 🎉",
