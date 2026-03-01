@@ -32,7 +32,6 @@ export function RunnerBillingStatus() {
     if (!user) return;
     fetchSubscription();
 
-    // Set up real-time subscription
     const channel = supabase
       .channel(`runner_subscriptions:${user.id}`)
       .on(
@@ -57,14 +56,14 @@ export function RunnerBillingStatus() {
   const fetchSubscription = async () => {
     if (!user) return;
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("runner_subscriptions")
         .select("*")
         .eq("runner_id", user.id)
         .single();
 
       if (!error && data) {
-        setSubscription(data);
+        setSubscription(data as RunnerSubscription);
       }
     } catch (error) {
       console.error("Error fetching subscription:", error);
@@ -106,7 +105,7 @@ export function RunnerBillingStatus() {
             <AlertDescription className="text-blue-800 dark:text-blue-200">
               <p className="font-semibold">Free Trial Active</p>
               <p className="text-sm mt-1">
-                Your first week is free! Trial ends in {daysRemaining} days. 
+                Your first week is free! Trial ends in {daysRemaining} days.
                 Complete at least 1 gig to activate billing.
               </p>
               <p className="text-sm mt-2">
@@ -180,30 +179,20 @@ export function RunnerBillingStatus() {
 
 function getStatusVariant(status: string): "default" | "secondary" | "destructive" | "outline" {
   switch (status) {
-    case "trial":
-      return "secondary";
-    case "active":
-      return "default";
-    case "paused":
-      return "destructive";
-    case "cancelled":
-      return "destructive";
-    default:
-      return "outline";
+    case "trial": return "secondary";
+    case "active": return "default";
+    case "paused": return "destructive";
+    case "cancelled": return "destructive";
+    default: return "outline";
   }
 }
 
 function getStatusLabel(status: string): string {
   switch (status) {
-    case "trial":
-      return "Free Trial";
-    case "active":
-      return "Active";
-    case "paused":
-      return "Paused";
-    case "cancelled":
-      return "Cancelled";
-    default:
-      return "Unknown";
+    case "trial": return "Free Trial";
+    case "active": return "Active";
+    case "paused": return "Paused";
+    case "cancelled": return "Cancelled";
+    default: return "Unknown";
   }
 }

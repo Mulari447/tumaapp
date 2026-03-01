@@ -20,7 +20,6 @@ export default function AdminSubscriptions() {
 
     setCreating(true);
     try {
-      // Resolve user by email or assume provided is id
       let runnerId = emailOrId;
       if (emailOrId.includes("@")) {
         const { data: profiles } = await supabase.from("profiles").select("id").eq("email", emailOrId).limit(1).single();
@@ -28,7 +27,7 @@ export default function AdminSubscriptions() {
         runnerId = (profiles as any).id;
       }
 
-      const { error } = await supabase.from("runner_subscriptions").insert({
+      const { error } = await (supabase as any).from("runner_subscriptions").insert({
         runner_id: runnerId,
         status: "trial",
         weekly_fee: weeklyFee,
