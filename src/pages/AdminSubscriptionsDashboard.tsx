@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 
@@ -18,7 +17,6 @@ interface Subscription {
 }
 
 export default function AdminSubscriptionsDashboard() {
-  const { user } = useAuth();
   const [subs, setSubs] = useState<Subscription[]>([]);
   const [profilesMap, setProfilesMap] = useState<Record<string, { full_name?: string | null; email: string }>>({});
   const [loading, setLoading] = useState(false);
@@ -30,14 +28,14 @@ export default function AdminSubscriptionsDashboard() {
   const fetchSubscriptions = async () => {
     setLoading(true);
     try {
-      const { data: subscriptions, error } = await supabase.from("runner_subscriptions").select("*");
+      const { data: subscriptions, error } = await (supabase as any).from("runner_subscriptions").select("*");
       if (error) throw error;
-      const subsData = subscriptions || [];
-      setSubs(subsData as Subscription[]);
+      const subsData = (subscriptions || []) as Subscription[];
+      setSubs(subsData);
 
-      const runnerIds = Array.from(new Set((subsData as any).map((s: any) => s.runner_id)));
+      const runnerIds = Array.from(new Set(subsData.map((s) => s.runner_id)));
       if (runnerIds.length > 0) {
-        const { data: profiles } = await supabase.from("profiles").select("id,full_name,email").in("id", runnerIds);
+        const { data: profiles } = await supabase.from("profiles").select("id,full_name,email").in("id", runnerIds as string[]);
         const map: Record<string, any> = {};
         (profiles || []).forEach((p: any) => (map[p.id] = { full_name: p.full_name, email: p.email }));
         setProfilesMap(map);
@@ -52,7 +50,7 @@ export default function AdminSubscriptionsDashboard() {
 
   const updateSubscription = async (id: string, updates: Partial<Subscription>) => {
     try {
-      const { error } = await supabase.from("runner_subscriptions").update(updates).eq("id", id);
+      const { error } = await (supabase as any).from("runner_subscriptions").update(updates).eq("id", id);
       if (error) throw error;
       toast({ title: "Updated", description: "Subscription updated" });
       fetchSubscriptions();
@@ -65,7 +63,6 @@ export default function AdminSubscriptionsDashboard() {
   const billNow = async () => {
     try {
       toast({ title: "Billing", description: "Triggering billing run..." });
-      // Invoke the edge function (may require proper auth)
       const { data, error } = await supabase.functions.invoke("charge-runners");
       if (error) throw error;
       toast({ title: "Done", description: "Billing function invoked" });
