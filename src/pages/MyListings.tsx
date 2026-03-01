@@ -37,6 +37,7 @@ import {
   Trash2,
   CheckCircle2,
   Loader2,
+  MessageSquare,
 } from "lucide-react";
 
 interface HouseListing {
@@ -77,6 +78,8 @@ export default function MyListings() {
     if (!authLoading && !user) navigate("/auth");
   }, [user, authLoading, navigate]);
 
+  const [inquiryCounts, setInquiryCounts] = useState<Record<string, number>>({});
+
   useEffect(() => {
     if (user) fetchListings();
   }, [user]);
@@ -91,6 +94,22 @@ export default function MyListings() {
         .order("created_at", { ascending: false });
       if (error) throw error;
       setListings(data || []);
+
+      // Fetch inquiry counts for all listings
+      if (data && data.length > 0) {
+        const ids = data.map((l) => l.id);
+        const { data: inquiries, error: iqErr } = await supabase
+          .from("house_inquiries")
+          .select("listing_id")
+          .in("listing_id", ids);
+        if (!iqErr && inquiries) {
+          const counts: Record<string, number> = {};
+          inquiries.forEach((iq) => {
+            counts[iq.listing_id] = (counts[iq.listing_id] || 0) + 1;
+          });
+          setInquiryCounts(counts);
+        }
+      }
     } catch (err) {
       console.error(err);
       toast({ title: "Error", description: "Failed to load listings", variant: "destructive" });
@@ -243,6 +262,12 @@ export default function MyListings() {
                     <Badge variant={listing.status === "available" ? "default" : "secondary"}>
                       {listing.status === "available" ? "Available" : "Taken"}
                     </Badge>
+                    {(inquiryCounts[listing.id] || 0) > 0 && (
+                      <Badge variant="outline" className="flex items-center gap-1">
+                        <MessageSquare className="h-3 w-3" />
+                        {inquiryCounts[listing.id]} {inquiryCounts[listing.id] === 1 ? "inquiry" : "inquiries"}
+                      </Badge>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent>
