@@ -132,10 +132,10 @@ export default function PostErrand() {
       .eq("user_id", user.id)
       .single();
 
-    if (walletError || !wallet || wallet.balance < ACCESS_FEE) {
+    if (walletError || !wallet || wallet.balance < MIN_BALANCE) {
       toast({
         title: "Insufficient Balance",
-        description: `You need at least KES ${ACCESS_FEE} in your wallet to post an errand. Please deposit funds first.`,
+        description: `You need at least KES ${MIN_BALANCE} in your wallet to post an errand. Please deposit funds first.`,
         variant: "destructive",
       });
       navigate("/wallet");
