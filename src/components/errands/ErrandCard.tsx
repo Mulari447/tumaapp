@@ -224,7 +224,9 @@ export function ErrandCard({ errand, isCustomer, onUpdate }: ErrandCardProps) {
 
           <div className="flex items-center justify-between pt-2 border-t">
             <p className="text-lg font-bold text-primary">
-              KES {(errand.total_price || errand.budget).toLocaleString()}
+              {(errand.total_price || errand.budget) > 0
+                ? `KES ${(errand.total_price || errand.budget).toLocaleString()}`
+                : "💬 Price: Negotiable"}
             </p>
 
             {/* Customer confirmation actions */}
@@ -282,7 +284,9 @@ export function ErrandCard({ errand, isCustomer, onUpdate }: ErrandCardProps) {
             <AlertDialogTitle>Confirm Errand Completion</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure the runner has completed this errand satisfactorily? 
-              This will release the payment of KES {(errand.total_price || errand.budget).toLocaleString()} to the runner.
+              {(errand.total_price || errand.budget) > 0 
+                ? ` This will release the payment of KES ${(errand.total_price || errand.budget).toLocaleString()} to the runner.`
+                : " Please confirm the work was done satisfactorily."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

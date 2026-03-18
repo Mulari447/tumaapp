@@ -21,6 +21,7 @@ import RunnerDashboard from "./pages/RunnerDashboard";
 import HouseListings from "./pages/HouseListings";
 import PostHouseListing from "./pages/PostHouseListing";
 import MyListings from "./pages/MyListings";
+import RunnerProfilePage from "./pages/RunnerProfilePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -50,6 +51,7 @@ const App = () => (
             <Route path="/house-listings" element={<HouseListings />} />
             <Route path="/post-house-listing" element={<PostHouseListing />} />
             <Route path="/my-listings" element={<MyListings />} />
+            <Route path="/runner/:runnerId" element={<RunnerProfilePage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

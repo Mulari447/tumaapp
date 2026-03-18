@@ -317,7 +317,9 @@ export default function RunnerDashboard() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-lg font-bold text-primary">
-                            KES {(errand.total_price || errand.budget).toLocaleString()}
+                            {(errand.total_price || errand.budget) > 0
+                              ? `KES ${(errand.total_price || errand.budget).toLocaleString()}`
+                              : "💬 Negotiable"}
                           </p>
                           {errand.accepted_at && (
                             <p className="text-xs text-muted-foreground">
@@ -422,7 +424,9 @@ export default function RunnerDashboard() {
                           )}
                         </div>
                         <p className="text-lg font-bold text-primary">
-                          KES {(errand.total_price || errand.budget).toLocaleString()}
+                          {(errand.total_price || errand.budget) > 0
+                            ? `KES ${(errand.total_price || errand.budget).toLocaleString()}`
+                            : "💬 Negotiable"}
                         </p>
                       </div>
                     </CardContent>

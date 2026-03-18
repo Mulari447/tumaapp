@@ -59,6 +59,9 @@ interface Errand {
   budget: number;
   created_at: string;
   customer_id: string;
+  pickup_location: string | null;
+  dropoff_location: string | null;
+  estimated_hours: number | null;
 }
 
 const categoryIcons: Record<ErrandCategory, React.ReactNode> = {
@@ -341,6 +344,9 @@ export default function ErrandsMarketplace() {
                       budget: errand.budget,
                       created_at: errand.created_at,
                       customer_id: '',
+                      pickup_location: null,
+                      dropoff_location: null,
+                      estimated_hours: null,
                     });
                     setConfirmDialogOpen(true);
                   }}
@@ -394,7 +400,7 @@ export default function ErrandsMarketplace() {
                   >
                     <Card className="h-full flex flex-col hover:shadow-lg transition-shadow">
                       <CardHeader className="pb-3">
-                        <div className="flex items-start justify-between gap-2">
+                         <div className="flex items-start justify-between gap-2">
                           <Badge
                             variant="outline"
                             className={`${categoryColors[errand.category]} flex items-center gap-1`}
@@ -402,8 +408,8 @@ export default function ErrandsMarketplace() {
                             {categoryIcons[errand.category]}
                             {categoryLabels[errand.category]}
                           </Badge>
-                          <span className="text-lg font-bold text-primary">
-                            KES {errand.budget.toLocaleString()}
+                          <span className="text-sm font-semibold text-primary">
+                            {errand.budget > 0 ? `KES ${errand.budget.toLocaleString()}` : "Negotiable"}
                           </span>
                         </div>
                         <CardTitle className="text-lg mt-2 line-clamp-2">
@@ -465,10 +471,9 @@ export default function ErrandsMarketplace() {
                 <div className="space-y-2 mt-2">
                   <p className="font-medium text-foreground">{selectedErrand.title}</p>
                   <p className="text-sm">Location: {selectedErrand.location}</p>
-                  <p className="text-sm">Budget: <span className="font-semibold text-primary">KES {selectedErrand.budget.toLocaleString()}</span></p>
+                  <p className="text-sm">Budget: <span className="font-semibold text-primary">{selectedErrand.budget > 0 ? `KES ${selectedErrand.budget.toLocaleString()}` : "Negotiable via chat"}</span></p>
                   <p className="text-sm mt-4">
-                    Once accepted, you'll be responsible for completing this errand. 
-                    The customer will be notified of your acceptance.
+                    Once accepted, you'll negotiate the final price with the customer via chat.
                   </p>
                 </div>
               )}
