@@ -351,6 +351,44 @@ export type Database = {
           },
         ]
       }
+      price_proposals: {
+        Row: {
+          amount: number
+          created_at: string
+          errand_id: string
+          id: string
+          proposed_by: string
+          responded_at: string | null
+          status: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          errand_id: string
+          id?: string
+          proposed_by: string
+          responded_at?: string | null
+          status?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          errand_id?: string
+          id?: string
+          proposed_by?: string
+          responded_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "price_proposals_errand_id_fkey"
+            columns: ["errand_id"]
+            isOneToOne: false
+            referencedRelation: "errands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           admin_notes: string | null
