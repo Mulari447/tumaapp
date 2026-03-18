@@ -284,7 +284,9 @@ export function ErrandCard({ errand, isCustomer, onUpdate }: ErrandCardProps) {
             <AlertDialogTitle>Confirm Errand Completion</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure the runner has completed this errand satisfactorily? 
-              This will release the payment of KES {(errand.total_price || errand.budget).toLocaleString()} to the runner.
+              {(errand.total_price || errand.budget) > 0 
+                ? ` This will release the payment of KES ${(errand.total_price || errand.budget).toLocaleString()} to the runner.`
+                : " Please confirm the work was done satisfactorily."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
