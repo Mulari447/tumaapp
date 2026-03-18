@@ -224,7 +224,9 @@ export function ErrandCard({ errand, isCustomer, onUpdate }: ErrandCardProps) {
 
           <div className="flex items-center justify-between pt-2 border-t">
             <p className="text-lg font-bold text-primary">
-              KES {(errand.total_price || errand.budget).toLocaleString()}
+              {(errand.total_price || errand.budget) > 0
+                ? `KES ${(errand.total_price || errand.budget).toLocaleString()}`
+                : "💬 Price: Negotiable"}
             </p>
 
             {/* Customer confirmation actions */}
