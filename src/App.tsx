@@ -51,6 +51,7 @@ const App = () => (
             <Route path="/house-listings" element={<HouseListings />} />
             <Route path="/post-house-listing" element={<PostHouseListing />} />
             <Route path="/my-listings" element={<MyListings />} />
+            <Route path="/runner/:runnerId" element={<RunnerProfilePage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
