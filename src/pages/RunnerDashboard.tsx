@@ -424,7 +424,9 @@ export default function RunnerDashboard() {
                           )}
                         </div>
                         <p className="text-lg font-bold text-primary">
-                          KES {(errand.total_price || errand.budget).toLocaleString()}
+                          {(errand.total_price || errand.budget) > 0
+                            ? `KES ${(errand.total_price || errand.budget).toLocaleString()}`
+                            : "💬 Negotiable"}
                         </p>
                       </div>
                     </CardContent>
