@@ -356,23 +356,18 @@ export default function PostErrand() {
                     )}
                   />
 
-                  {/* Access Fee */}
-                  <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium">Access Fee</p>
-                        <p className="text-xs text-muted-foreground">
-                          One-time fee to post this errand. Negotiate final price with your runner via chat.
-                        </p>
-                      </div>
-                      <p className="text-2xl font-bold text-primary">
-                        KES {ACCESS_FEE}
-                      </p>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      📱 Contact runner at <strong>0748 390 976</strong> for inquiries
-                    </p>
-                  </div>
+                   {/* Pricing Info */}
+                   <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
+                     <div>
+                       <p className="text-sm font-medium">💬 Price is negotiated with the runner</p>
+                       <p className="text-xs text-muted-foreground mt-1">
+                         Once a runner accepts your errand, you'll agree on the final price via chat before work begins.
+                       </p>
+                       <p className="text-xs text-muted-foreground mt-2">
+                         ⚠️ Minimum wallet balance of <strong>KES {MIN_BALANCE}</strong> required to post.
+                       </p>
+                     </div>
+                   </div>
 
                   {/* Submit */}
                   <div className="flex gap-3 pt-4">
