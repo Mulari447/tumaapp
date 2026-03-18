@@ -86,9 +86,8 @@ const errandSchema = z.object({
 
 type ErrandFormData = z.infer<typeof errandSchema>;
 
-const ACCESS_FEE = 100;
+const MIN_BALANCE = 100;
 
-const calculatePrice = () => ACCESS_FEE;
 
 export default function PostErrand() {
   const navigate = useNavigate();
@@ -109,7 +108,6 @@ export default function PostErrand() {
   });
 
   const estimatedHours = Number(form.watch("estimated_hours")) || 1;
-  const calculatedPrice = ACCESS_FEE;
 
   const handleLocationChange = (location: { lat: number; lng: number; address: string }) => {
     setPickupCoords({ lat: location.lat, lng: location.lng });
@@ -134,10 +132,10 @@ export default function PostErrand() {
       .eq("user_id", user.id)
       .single();
 
-    if (walletError || !wallet || wallet.balance < ACCESS_FEE) {
+    if (walletError || !wallet || wallet.balance < MIN_BALANCE) {
       toast({
         title: "Insufficient Balance",
-        description: `You need at least KES ${ACCESS_FEE} in your wallet to post an errand. Please deposit funds first.`,
+        description: `You need at least KES ${MIN_BALANCE} in your wallet to post an errand. Please deposit funds first.`,
         variant: "destructive",
       });
       navigate("/wallet");
@@ -146,8 +144,8 @@ export default function PostErrand() {
 
     setLoading(true);
     try {
-      // Insert errand first
-      const { data: errandData, error: errandError } = await supabase.from("errands").insert({
+      // Insert errand — no fee deducted, price negotiated with runner
+      const { error: errandError } = await supabase.from("errands").insert({
         customer_id: user.id,
         title: data.title,
         category: data.category,
@@ -156,34 +154,12 @@ export default function PostErrand() {
         pickup_location: data.pickup_location,
         dropoff_location: data.dropoff_location,
         estimated_hours: Number(data.estimated_hours),
-        budget: calculatedPrice,
+        budget: 0,
         latitude: pickupCoords?.lat || null,
         longitude: pickupCoords?.lng || null,
-      }).select();
-
-      if (errandError) throw errandError;
-      const errandId = errandData?.[0]?.id;
-
-      // Create transaction record
-      const { error: transactionError } = await supabase.from("transactions").insert({
-        wallet_id: wallet.id,
-        errand_id: errandId,
-        type: "errand_payment" as const,
-        amount: ACCESS_FEE,
-        status: "completed" as const,
-        description: `Access fee for errand: ${data.title}`,
       });
 
-      if (transactionError) throw transactionError;
-
-      // Update wallet balance atomically
-      const newBalance = parseFloat(String(wallet.balance)) - ACCESS_FEE;
-      const { error: updateError } = await supabase
-        .from("wallets")
-        .update({ balance: newBalance })
-        .eq("id", wallet.id);
-
-      if (updateError) throw updateError;
+      if (errandError) throw errandError;
 
       toast({
         title: "Errand Posted! 🎉",
@@ -380,23 +356,18 @@ export default function PostErrand() {
                     )}
                   />
 
-                  {/* Access Fee */}
-                  <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium">Access Fee</p>
-                        <p className="text-xs text-muted-foreground">
-                          One-time fee to post this errand. Negotiate final price with your runner via chat.
-                        </p>
-                      </div>
-                      <p className="text-2xl font-bold text-primary">
-                        KES {ACCESS_FEE}
-                      </p>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      📱 Contact runner at <strong>0748 390 976</strong> for inquiries
-                    </p>
-                  </div>
+                   {/* Pricing Info */}
+                   <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
+                     <div>
+                       <p className="text-sm font-medium">💬 Price is negotiated with the runner</p>
+                       <p className="text-xs text-muted-foreground mt-1">
+                         Once a runner accepts your errand, you'll agree on the final price via chat before work begins.
+                       </p>
+                       <p className="text-xs text-muted-foreground mt-2">
+                         ⚠️ Minimum wallet balance of <strong>KES {MIN_BALANCE}</strong> required to post.
+                       </p>
+                     </div>
+                   </div>
 
                   {/* Submit */}
                   <div className="flex gap-3 pt-4">

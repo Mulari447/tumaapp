@@ -12,6 +12,11 @@ import {
 import deliveryImage from "@/assets/delivery-service.jpg";
 import shoppingImage from "@/assets/shopping-service.jpg";
 import cleaningImage from "@/assets/cleaning-service.jpg";
+import billPaymentImage from "@/assets/bill-payment-service.jpg";
+import queueImage from "@/assets/queue-service.jpg";
+import movingImage from "@/assets/moving-service.jpg";
+import documentImage from "@/assets/document-service.jpg";
+import personalTasksImage from "@/assets/personal-tasks-service.jpg";
 
 const services = [
   {
@@ -30,13 +35,13 @@ const services = [
     icon: CreditCard,
     title: "Bill Payments",
     description: "Pay bills, utilities, or handle banking errands on your behalf",
-    image: null,
+    image: billPaymentImage,
   },
   {
     icon: Clock,
     title: "Queue for You",
     description: "Stand in line at government offices, banks, or service centers",
-    image: null,
+    image: queueImage,
   },
   {
     icon: Sparkles,
@@ -48,19 +53,19 @@ const services = [
     icon: Truck,
     title: "Moving Help",
     description: "Small moves, furniture assembly, or heavy lifting assistance",
-    image: null,
+    image: movingImage,
   },
   {
     icon: FileText,
     title: "Document Runs",
     description: "Collect or submit documents, permits, or paperwork anywhere",
-    image: null,
+    image: documentImage,
   },
   {
     icon: Users,
     title: "Personal Tasks",
     description: "Any other task you need help with — just describe it",
-    image: null,
+    image: personalTasksImage,
   },
 ];
 
@@ -84,67 +89,36 @@ const Services = () => {
           </p>
         </motion.div>
 
-        {/* Featured Services with Images */}
-        <div className="grid md:grid-cols-3 gap-8 mb-12">
-          {services.filter(s => s.image).map((service, index) => {
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {services.map((service, index) => {
             const Icon = service.icon;
-            
             return (
               <motion.div
                 key={service.title}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: index * 0.1 }}
+                transition={{ duration: 0.4, delay: index * 0.08 }}
                 className="group bg-card rounded-2xl overflow-hidden border border-border hover:shadow-xl transition-all duration-300"
               >
                 <div className="aspect-video overflow-hidden">
                   <img
-                    src={service.image!}
+                    src={service.image}
                     alt={service.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 </div>
-                <div className="p-6">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Icon className="w-5 h-5 text-primary" />
+                <div className="p-5">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Icon className="w-4 h-4 text-primary" />
                     </div>
-                    <h3 className="text-lg font-semibold text-foreground">{service.title}</h3>
+                    <h3 className="text-base font-semibold text-foreground">{service.title}</h3>
                   </div>
                   <p className="text-muted-foreground text-sm leading-relaxed">
                     {service.description}
                   </p>
                 </div>
-              </motion.div>
-            );
-          })}
-        </div>
-
-        {/* Other Services Grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          {services.filter(s => !s.image).map((service, index) => {
-            const Icon = service.icon;
-            
-            return (
-              <motion.div
-                key={service.title}
-                initial={{ opacity: 0, scale: 0.95 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: index * 0.05 }}
-                whileHover={{ y: -5 }}
-                className="group bg-card rounded-xl p-5 border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300"
-              >
-                <div className="w-10 h-10 rounded-lg bg-primary/10 group-hover:bg-primary/20 flex items-center justify-center mb-3 transition-colors">
-                  <Icon className="w-5 h-5 text-primary" />
-                </div>
-                <h3 className="font-semibold text-foreground mb-1 text-sm">
-                  {service.title}
-                </h3>
-                <p className="text-xs text-muted-foreground">
-                  {service.description}
-                </p>
               </motion.div>
             );
           })}
