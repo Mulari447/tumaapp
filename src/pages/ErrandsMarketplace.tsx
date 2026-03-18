@@ -397,7 +397,7 @@ export default function ErrandsMarketplace() {
                   >
                     <Card className="h-full flex flex-col hover:shadow-lg transition-shadow">
                       <CardHeader className="pb-3">
-                        <div className="flex items-start justify-between gap-2">
+                         <div className="flex items-start justify-between gap-2">
                           <Badge
                             variant="outline"
                             className={`${categoryColors[errand.category]} flex items-center gap-1`}
@@ -405,8 +405,8 @@ export default function ErrandsMarketplace() {
                             {categoryIcons[errand.category]}
                             {categoryLabels[errand.category]}
                           </Badge>
-                          <span className="text-lg font-bold text-primary">
-                            KES {errand.budget.toLocaleString()}
+                          <span className="text-sm font-semibold text-primary">
+                            {errand.budget > 0 ? `KES ${errand.budget.toLocaleString()}` : "Negotiable"}
                           </span>
                         </div>
                         <CardTitle className="text-lg mt-2 line-clamp-2">
