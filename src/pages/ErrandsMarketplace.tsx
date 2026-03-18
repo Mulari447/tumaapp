@@ -59,6 +59,9 @@ interface Errand {
   budget: number;
   created_at: string;
   customer_id: string;
+  pickup_location: string | null;
+  dropoff_location: string | null;
+  estimated_hours: number | null;
 }
 
 const categoryIcons: Record<ErrandCategory, React.ReactNode> = {
