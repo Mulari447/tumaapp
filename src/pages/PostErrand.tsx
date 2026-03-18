@@ -108,7 +108,6 @@ export default function PostErrand() {
   });
 
   const estimatedHours = Number(form.watch("estimated_hours")) || 1;
-  const calculatedPrice = ACCESS_FEE;
 
   const handleLocationChange = (location: { lat: number; lng: number; address: string }) => {
     setPickupCoords({ lat: location.lat, lng: location.lng });
