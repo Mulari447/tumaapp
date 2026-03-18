@@ -144,8 +144,8 @@ export default function PostErrand() {
 
     setLoading(true);
     try {
-      // Insert errand first
-      const { data: errandData, error: errandError } = await supabase.from("errands").insert({
+      // Insert errand — no fee deducted, price negotiated with runner
+      const { error: errandError } = await supabase.from("errands").insert({
         customer_id: user.id,
         title: data.title,
         category: data.category,
@@ -154,34 +154,12 @@ export default function PostErrand() {
         pickup_location: data.pickup_location,
         dropoff_location: data.dropoff_location,
         estimated_hours: Number(data.estimated_hours),
-        budget: calculatedPrice,
+        budget: 0,
         latitude: pickupCoords?.lat || null,
         longitude: pickupCoords?.lng || null,
-      }).select();
-
-      if (errandError) throw errandError;
-      const errandId = errandData?.[0]?.id;
-
-      // Create transaction record
-      const { error: transactionError } = await supabase.from("transactions").insert({
-        wallet_id: wallet.id,
-        errand_id: errandId,
-        type: "errand_payment" as const,
-        amount: ACCESS_FEE,
-        status: "completed" as const,
-        description: `Access fee for errand: ${data.title}`,
       });
 
-      if (transactionError) throw transactionError;
-
-      // Update wallet balance atomically
-      const newBalance = parseFloat(String(wallet.balance)) - ACCESS_FEE;
-      const { error: updateError } = await supabase
-        .from("wallets")
-        .update({ balance: newBalance })
-        .eq("id", wallet.id);
-
-      if (updateError) throw updateError;
+      if (errandError) throw errandError;
 
       toast({
         title: "Errand Posted! 🎉",
