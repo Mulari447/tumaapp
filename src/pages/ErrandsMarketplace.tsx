@@ -344,6 +344,9 @@ export default function ErrandsMarketplace() {
                       budget: errand.budget,
                       created_at: errand.created_at,
                       customer_id: '',
+                      pickup_location: null,
+                      dropoff_location: null,
+                      estimated_hours: null,
                     });
                     setConfirmDialogOpen(true);
                   }}
