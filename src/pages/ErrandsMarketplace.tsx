@@ -471,10 +471,9 @@ export default function ErrandsMarketplace() {
                 <div className="space-y-2 mt-2">
                   <p className="font-medium text-foreground">{selectedErrand.title}</p>
                   <p className="text-sm">Location: {selectedErrand.location}</p>
-                  <p className="text-sm">Budget: <span className="font-semibold text-primary">KES {selectedErrand.budget.toLocaleString()}</span></p>
+                  <p className="text-sm">Budget: <span className="font-semibold text-primary">{selectedErrand.budget > 0 ? `KES ${selectedErrand.budget.toLocaleString()}` : "Negotiable via chat"}</span></p>
                   <p className="text-sm mt-4">
-                    Once accepted, you'll be responsible for completing this errand. 
-                    The customer will be notified of your acceptance.
+                    Once accepted, you'll negotiate the final price with the customer via chat.
                   </p>
                 </div>
               )}
