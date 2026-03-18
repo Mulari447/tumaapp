@@ -86,9 +86,8 @@ const errandSchema = z.object({
 
 type ErrandFormData = z.infer<typeof errandSchema>;
 
-const ACCESS_FEE = 100;
+const MIN_BALANCE = 100;
 
-const calculatePrice = () => ACCESS_FEE;
 
 export default function PostErrand() {
   const navigate = useNavigate();
